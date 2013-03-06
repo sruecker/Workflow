@@ -1,8 +1,10 @@
 package {
 	
 	//import
-	import controller.WorkflowController;
+	import com.greensock.TweenMax;
+	import com.greensock.easing.Back;
 	
+	import flash.display.Bitmap;
 	import flash.display.Loader;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -10,15 +12,14 @@ package {
 	import flash.events.Event;
 	import flash.net.URLRequest;
 	
+	import controller.WorkflowController;
+	 
 	import model.DataModel;
 	import model.StructureModel;
 	
-	import util.LoadFile;
-	
 	import view.OrlandoView;
 	
-	//[SWF(width="1150", height="650", backgroundColor="#ffffff", frameRate="30")]
-	
+	[SWF(width="1150", height="650", backgroundColor="#ffffff", frameRate="30")]
 	public class Main extends Sprite {
 		
 		//properties
@@ -30,8 +31,11 @@ package {
 		private var background:Sprite 
 		private var url:URLRequest;
 		private var loader:Loader;
+
+		private var logo:Sprite;
 		
 		public function Main() {
+			
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
@@ -44,13 +48,17 @@ package {
 			background.addChild(loader)
 			background.alpha = .3;
 			addChild(background);
-			
+					
 			//logo
-			var logo:Sprite = new LoadFile("images/new_logo.png");
-			logo.x = 20;
-			logo.y = 20;
+			logo = new Sprite();
+			url = new URLRequest("images/logo.png");
+			
+			var loaderLogo:Loader = new Loader();
+			loaderLogo.contentLoaderInfo.addEventListener(Event.COMPLETE, loadLogo)
+			loaderLogo.load(url);
+			logo.addChild(loaderLogo);
 			logo.blendMode = "multiply";
-			logo.alpha = .5;
+			logo.alpha = .9;
 			logo.cacheAsBitmap = true;
 			this.addChild(logo);
 			
@@ -66,8 +74,17 @@ package {
 			//Starting View
 			orlandoView = new OrlandoView(workflowController);
 			addChild(orlandoView);
+		}
+		
+		protected function loadLogo(event:Event):void {
+			var img:Bitmap = event.currentTarget.content;
+			img.x = -img.width/2;
+			img.y = -img.height/2;
 			
+			logo.x = 195;
+			logo.y = 70;
 			
+			TweenMax.from(logo,3,{alpha:0, x:-img.width/2, rotation:-400, delay:1, ease: Back.easeOut});
 		}
 		
 		private function loadImage(e:Event):void {
@@ -77,7 +94,6 @@ package {
 		
 		private function _loadWorkFlow(e:Event):void {
 			orlandoView.init();
-			
 		}
 	}
 }

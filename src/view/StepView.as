@@ -34,6 +34,8 @@ package view {
 		private var activeArea:AbstractShape;
 		private var shadow:ShadowLine
 		
+		private var titleArea:AbstractShape;
+		
 		private var countBox:CountBox			//display hte number of steps
 		private var pinCount:int = 0;			//pin count
 		
@@ -42,6 +44,8 @@ package view {
 		private var titleFinalStyle:TextFormat = new TextFormat("Arial",13,0xffffff,true);
 		
 		private var glowBlur:uint = 5;
+		
+		public var viewType:String = "normal";
 		
 		
 		public function StepView(c:IController, data:AbstractStep = null) {
@@ -85,7 +89,7 @@ package view {
 				this.addChild(shadow);
 				
 				//title Area
-				var titleArea:AbstractShape = new Rect(activeArea.width,20);
+				titleArea = new Rect(activeArea.width,20);
 				titleArea.color = 0x666666;
 				titleArea.drawShape()
 				titleArea.y = activeArea.height;
@@ -98,11 +102,12 @@ package view {
 				titleTextField.wordWrap = true;
 				//titleTextField.embedFonts = true;
 				titleTextField.selectable = false;
-				titleTextField.text = acronym;
-				titleTextField.setTextFormat(titleStyle);
+				titleTextField.defaultTextFormat = titleStyle;
 				
-				titleTextField.x = 5;
-				titleTextField.y = titleArea.y + 2;
+				titleTextField.text = acronym;
+				
+				titleTextField.x = titleArea.width / 20;
+				titleTextField.y = titleArea.y + (titleArea.height / 20);
 				this.addChild(titleTextField);
 				
 				//count box
@@ -161,8 +166,8 @@ package view {
 				this.addChild(arc)
 				
 				//shadow separate
-				shadow = new ShadowLine(115);
-				shadow.x = -23;
+				shadow = new ShadowLine(110);
+				shadow.x = -20;
 				shadow.y = activeArea.height - arc.height - 19;
 				this.addChild(shadow);
 				
@@ -171,11 +176,9 @@ package view {
 				titleTextField = new TextField();
 				titleTextField.width = 65;
 				titleTextField.autoSize = "left";
-				//titleTextField.wordWrap = true;
-				//titleTextField.embedFonts = true;
 				titleTextField.selectable = false;
+				titleTextField.defaultTextFormat = titleFinalStyle;
 				titleTextField.text = acronym;
-				titleTextField.setTextFormat(titleFinalStyle);
 				
 				titleTextField.x = 8;
 				titleTextField.y = 98;
@@ -288,6 +291,39 @@ package view {
 		public function updateCounter(value:int):void {
 			pinCount = value;
 			countBox.count = pinCount;
+		}
+		
+		public function changeView(actualScale:Number):void {
+			
+			var usableScale:Number = (3 * actualScale) /4;
+			if (usableScale < 1) {
+				usableScale = 1;
+			}
+			
+			//title bar
+			if (titleArea) {
+				titleArea.scaleY = (1/usableScale);
+				
+				//title
+				titleTextField.scaleX = titleTextField.scaleY = (1/usableScale);
+				titleTextField.x = titleArea.width / 20;
+				titleTextField.y = titleArea.y + (titleArea.height / 20);;
+			
+			}
+				
+			if (actualScale > 3 && viewType == "normal") {
+				viewType = "zoom";
+				
+				titleTextField.text = title;
+				titleTextField.width = 200;
+				
+			} else if (actualScale < 3 && viewType == "zoom") {
+				viewType = "normal";
+				
+				titleTextField.text = acronym;
+				titleTextField.width = 65;
+			}
+			
 		}
 
 	}

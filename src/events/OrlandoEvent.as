@@ -7,6 +7,7 @@ package events{
 		public static const KILL_BALLOON:String = "kill_balloon";
 		public static const UPDATE_STEP:String = "uptade_step";
 		public static const UPDATE_PIN:String = "uptade_pin";
+		public static const ACTIVATE_PIN:String = "activate_pin";
 		
 		public var id:int;
 		public var data:Object;

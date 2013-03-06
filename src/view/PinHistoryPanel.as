@@ -1,19 +1,15 @@
 package view {
 	
 	//imports
-	import com.greensock.BlitMask;
+	//import com.greensock.BlitMask;
 	import com.greensock.TweenMax;
-	import com.greensock.easing.*;
+	import com.greensock.easing.Back;
 	
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.filters.BitmapFilter;
-	import flash.filters.BitmapFilterQuality;
-	import flash.filters.GlowFilter;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
-	
-	import mvc.IController;
 	
 	import view.graphic.ShadowLine;
 	import view.util.scroll.Scroll;
@@ -22,7 +18,7 @@ package view {
 		
 		//Properties
 		private var pinId:int;										//pinId;
-		private var shape:Shape;									//shape
+		private var _shape:Shape;									//shape
 		private var TF:TextField;									//Textfield
 		
 		
@@ -37,7 +33,8 @@ package view {
 		
 		private var scrolledArea:Sprite;
 		private var container:Sprite;
-		private var containerMask:BlitMask;
+		private var containerMask:Sprite;
+		//private var containerMask:BlitMask;
 		
 		private var scroll:Scroll;
 		private var scrolling:Boolean = false;
@@ -179,8 +176,14 @@ package view {
 				scrolling = true;
 				
 				//mask for container
-				containerMask = new BlitMask(container, container.x, container.y, wide, _maxHeight -scrolledArea.y, true);
-				containerMask.disableBitmapMode();
+				containerMask = new Sprite();
+				containerMask.graphics.beginFill(0xFFFFFF,0);
+				containerMask.graphics.drawRect(container.x, scrolledArea.y, wide, _maxHeight - scrolledArea.y);
+				this.addChild(containerMask);
+				container.mask = containerMask
+				
+				//containerMask = new BlitMask(container, container.x, container.y, wide, _maxHeight -scrolledArea.y, true);
+				//containerMask.disableBitmapMode();
 				
 				//add scroll system
 				scroll = new Scroll();
@@ -338,6 +341,15 @@ package view {
 		public function get windowHeight():int {
 			return shape.height;
 		}
+
+		public function get shape():Shape {
+			return _shape;
+		}
+
+		public function set shape(value:Shape):void {
+			_shape = value;
+		}
+
 
 	}
 }

@@ -2,7 +2,7 @@ package view {
 	
 	//imports
 	import com.greensock.TweenMax;
-	import com.greensock.easing.*;
+	import com.greensock.easing.Back;
 	
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
@@ -17,6 +17,8 @@ package view {
 	import mvc.IController;
 	
 	import view.graphic.Rect;
+	
+	import util.DeviceInfo;
 	
 	public class PinView extends OrlandoView {
 		
@@ -45,7 +47,7 @@ package view {
 		private var timer:Timer = new Timer(400,1);											//Timer between single and double click
 		
 		private var _balloonActive:Boolean = false;											//Switch between show and hide info balloon
-		private var bigView:Boolean = false;												//Switch between small and big view
+		public var bigView:Boolean = false;												//Switch between small and big view
 		
 		private var pinControlPanel:PinControlPanel;										//Control panel for the big view
 		private var pinInfoPanel:PinInfoPanel;												//Info panel for the big view
@@ -54,6 +56,8 @@ package view {
 		private var historyPanelOpen:Boolean = false;
 		private var pinFlagPanel:PinFlagPanel;												//Flag panel for the big view
 		private var flagPanelOpen:Boolean = false;
+		
+		private var _ratioPos:Object; //**
 		
 		public function PinView(idValue:int) {
 			
@@ -66,6 +70,9 @@ package view {
 		
 		override public function init():void {
 			
+			if (DeviceInfo.os() != "Mac") { 
+				shapeSize = 9;
+			}
 			
 			//go
 			ActualFlagColor = new Object();
@@ -98,8 +105,7 @@ package view {
 		override public function defaultController (model:Observable):IController {
 			return new PinController(model);
 		}
-		*/
-		
+		*/	
 		private function drawShape():void {
 			shape.graphics.clear()
 			shape.graphics.beginFill(ActualFlagColor.color);
@@ -239,18 +245,20 @@ package view {
 
 			switch(clickCount) {
 				case 1:
-					_singleClick();
+					onSingleClick();
 					break;
 				case 2:
-					_doubleClick();
+					onDoubleClick();
 					break;
 			}
 		}
 		
-		private function _singleClick():void {
+		public function onSingleClick():void {
 			
 			//reset clickCount
 			clickCount = 0;
+			
+			OrlandoView(this.parent).changeLayer(this);
 			
 			//if balloon is not active:create one. - if exist already, remove it.
 			if (!balloonActive) {
@@ -261,14 +269,26 @@ package view {
 			} else {
 				workflowController.killBalloon(_id);
 			}
+			
 		}
 		
-		private function _doubleClick():void {
+		public function onDoubleClick():void {
 			clickCount = 0;
+			
+			OrlandoView(this.parent).changeLayer(this);
 
 			if (!bigView) {
 				goBig();
 			}
+			
+			//send event to the list
+			var data:Object = new Object();
+			data.source = "workflow";
+			data.action = "double";
+			data.selected = true;
+			data.controlView = true;
+			
+			workflowController.activatePin(_id,data);
 		}
 		
 		private function goBig():void {
@@ -324,34 +344,46 @@ package view {
 		}
 		
 		private function align():void {
-			
 			//get bounds
-			var outdideBounds:Rectangle = this.getBounds(parent);
+			var outsideBounds:Rectangle = this.getRect(parent);
+			//this.get
 			var offset:int = 5;
 			var diff:Number;
 			
-		
+			var params:Object = new Object();
+			
 			//top margin
-			if (outdideBounds.y < offset) {
-				TweenMax.to(this,1,{y:this.y - outdideBounds.y + offset});
-			}
+			if (outsideBounds.y < offset) params.y = this.y - outsideBounds.y + offset;
+			
 			
 			//left margin
-			if (outdideBounds.x < offset) {
-				TweenMax.to(this,1,{x:this.x - outdideBounds.x + offset});
-			}
+			if (outsideBounds.x < offset) params.x = this.x - outsideBounds.x + offset;
+			
 			
 			//right margin
-			if (outdideBounds.x + outdideBounds.width > stage.stageWidth - offset) {
-				diff = (outdideBounds.x + outdideBounds.width) - stage.stageWidth + offset;
-				TweenMax.to(this,1,{x:this.x - diff});
+			if (outsideBounds.x + outsideBounds.width > stage.stageWidth - offset) {
+				diff = (outsideBounds.x + outsideBounds.width) - stage.stageWidth + offset;
+				params.x = this.x - diff;
 			}
 			
 			//bottom
-			if (outdideBounds.y + outdideBounds.height > stage.stageHeight) {
-				diff = (outdideBounds.y + outdideBounds.height) - stage.stageHeight + offset;
-				TweenMax.to(this,1,{y:this.y - diff});
+			if (historyPanelOpen) {
+				
+				var aproxH:Number = this.height - this.pinHistoryPanel.height + this.pinHistoryPanel.shape.height;
+				
+				if (outsideBounds.y + aproxH > stage.stageHeight) {
+					diff = (outsideBounds.y + aproxH) - stage.stageHeight + offset;
+					params.y = this.y - diff;
+				}
+			} else {
+				if (outsideBounds.y + outsideBounds.height > stage.stageHeight) {
+					diff = (outsideBounds.y + outsideBounds.height) - stage.stageHeight + offset;
+					params.y = this.y - diff;
+				}
 			}
+			
+			//animation
+			TweenMax.to(this,1,params);
 			
 			
 		}
@@ -441,6 +473,16 @@ package view {
 			}
 			
 			
+			//send event to the list
+			var data:Object = new Object();
+			data.source = "workflow";
+			data.action = "double";
+			data.selected = false;
+			data.controlView = false;
+			
+			workflowController.activatePin(_id,data);
+			
+			
 		}
 		
 		//----------------------------------- getters and setters -----------------------------------------
@@ -509,6 +551,18 @@ package view {
 
 		public function set actualFlag(value:String):void {
 			_actualFlag = value;
+		}
+		
+		//**
+		public function get ratioPos():Object {
+			return _ratioPos;
+		}
+
+		public function set ratioPos(value:Object):void {
+			if(!_ratioPos) {
+				_ratioPos = new Object
+			}
+			_ratioPos = value;
 		}
 
 

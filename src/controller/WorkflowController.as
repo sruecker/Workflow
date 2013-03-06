@@ -196,5 +196,11 @@ package controller {
 			_model = getModel("data");
 			DataModel(_model).setPinTagged(pinId, tag);
 		}
+		
+		public function activatePin(pinId:int, data:Object):void {
+			var update:OrlandoEvent = new OrlandoEvent(OrlandoEvent.ACTIVATE_PIN, pinId);
+			update.data = data;
+			this.dispatchEvent(update);
+		}
 	}
 }
