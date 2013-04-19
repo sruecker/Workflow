@@ -1,17 +1,29 @@
 package model {
 	
 	//imports
+	import events.OrlandoEvent;
+	
 	import mvc.Observable;
 	
+	/**
+	 * 
+	 * @author lucaju
+	 * 
+	 */
 	public class StructureModel extends Observable {
 		
-		//properties
-		private var stepCollection:Array;			//Collection of steps
-		private var abstractStep:AbstractStep;		//Generic AbstractStep Object
+		//****************** Proprieties ****************** ****************** ******************
 		
-		private var groupCollection:Array;			//Collection of groups
-		private var abstractGroup:AbstractGroup;	//Generic AbstractGroup Object
+		protected var stepCollection				:Array;					//Collection of steps
+		protected var groupCollection				:Array;					//Collection of groups
 		
+		
+		//****************** Constructor ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * 
+		 */
 		public function StructureModel() {
 			
 			super();
@@ -25,6 +37,9 @@ package model {
 			
 			createStructure(initData());
 		}
+		
+		
+		//****************** PRIVATE INITIAL DATA ****************** ****************** ******************
 		
 		/**
 		 * Initial data for the structure.
@@ -44,10 +59,14 @@ package model {
 				{id:10,title:"Public",acronym:"PUBLIC",level:5,group:""},
 				{id:11,title:"Enhance",acronym:"ENH",level:6,group:""},
 				{id:12,title:"Tag Cleanup",acronym:"TC",level:-2,group:""},
-				{id:13,title:"Revision",acronym:"REV",level:-1,group:""}];
+				{id:13,title:"Revision",acronym:"REV",level:-1,group:""}
+			];
 			
 			return data;
 		}
+		
+		
+		//****************** PROCESS DATA ****************** ****************** ******************
 		
 		/**
 		 * Create the step structure of the workflow.
@@ -62,108 +81,193 @@ package model {
 			
 			for each(var step:Object in data) {
 				//add steps to the collection
-				abstractStep = new AbstractStep(step.id);
+				var stepModel:StepModel = new StepModel(step.id);
 				
-				abstractStep.title = step.title;
-				abstractStep.acronym = step.acronym;
-				abstractStep.level = step.level;
+				stepModel.title = step.title;
+				stepModel.acronym = step.acronym;
+				stepModel.level = step.level;
 				
 				// set a group if belong to one
 				if (step.group) {
-					var abstractGroup:AbstractGroup = getGroup(step.group, step.level);
-					abstractGroup.addStep(step.id);
-					abstractStep.group = abstractGroup.id;
+					var groupModel:GroupModel = getGroup(step.group);
+					
+					if (!groupModel) groupModel = addGroup(step.group, step.level);
+					
+					groupModel.addStep(step.id);
+					stepModel.group = groupModel.id;
+					
 				}
 				
 				//put in the collection
-				stepCollection.push(abstractStep);
+				stepCollection.push(stepModel);
 				
 				//clear
-				abstractStep = null;
-				abstractGroup = null;		
+				stepModel = null;
+				groupModel = null;		
 			}
 				
 		}
+		
+		
+		//****************** PROTECTED METHODS - GROUPS ****************** ****************** ******************
 	
 		/**
-		 * Abstract Group builder
 		 * Return GroupStep
-		 * If exist just get the instance; if not, create.
 		 * 
 		 * @param	name	String - group name
 		 */
-		private function getGroup(name:String, level:Number):AbstractGroup {
-			//looking for the group name
-			for each(abstractGroup in groupCollection) {
-				if (abstractGroup.title == name) {
-					return abstractGroup;
+		protected function getGroup(name:String):GroupModel {
+			for each(var groupModel:GroupModel in groupCollection) {
+				if (groupModel.title == name) {
+					return groupModel;
 				}
 			}
 			
-			//create new group
-			abstractGroup = new AbstractGroup(groupCollection.length+1, name, level);
-			
-			//add group view to a collection
-			groupCollection.push(abstractGroup);
-			
-			return abstractGroup;
+			return null;
+		}
+		
+		/**
+		 * Group Model builder
+		 * 
+		 * @param name
+		 * @param level
+		 * @return GroupModel
+		 * 
+		 */
+		protected function addGroup(name:String, level:Number):GroupModel {
+			var groupModel:GroupModel = new GroupModel(groupCollection.length+1, name, level);
+			groupCollection.push(groupModel);
+			return groupModel;
 		}
 		
 		
+		//****************** PUBLIC METHODS - GETTERS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
 		public function getStepCollection():Array {
 			return stepCollection.concat();
 		}
 		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
 		public function getGroupsCollection():Array {
 			return groupCollection.concat();
 		}
 		
-		public function getStep(id:int):AbstractStep {
-			for each(var step:AbstractStep in stepCollection) {
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getStepById(id:int):StepModel {
+			for each(var step:StepModel in stepCollection) {
 				if(step.id == id) {
 					return step;
-					break;
 				}
 			}
 			return null;
 		}
 		
-		public function getStepByAcronym(acron:String):int {
-			for each(var step:AbstractStep in stepCollection) {
-				if(step.acronym.toLowerCase() == acron) {
-					return step.id;
-					break;
-				}
-			}
-			return undefined;
-		}
-		
-		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
 		public function getStepAcronym(id:int):String {
-			var step:AbstractStep = getStep(id)
+			var step:StepModel = getStepById(id)
 			return step.acronym;
 		}
 		
-		public function getStepTitleByAcronym(acron:String):String {
-			for each(var step:AbstractStep in stepCollection) {
-				if(step.acronym.toLowerCase() == acron) {
-					return step.title;
-					break;
+		/**
+		 * 
+		 * @param acronym
+		 * @return 
+		 * 
+		 */
+		public function getStepByAcronym(acronym:String):StepModel {
+			for each(var step:StepModel in stepCollection) {
+				if(step.acronym.toLowerCase() == acronym.toLowerCase()) {
+					return step;
 				}
 			}
-			return undefined;
+			return null;
 		}
 		
-		public function addPinToStep(stepId:int, pinId:int):AbstractStep {
-			var step:AbstractStep = getStep(stepId)
+		/**
+		 * 
+		 * @param acronym
+		 * @return 
+		 * 
+		 */
+		public function getStepIdByAcronym(acronym:String):int {
+			var step:StepModel = getStepByAcronym(acronym);
+			
+			if(step) return step.id;
+			
+			return null;
+		}
+		
+		/**
+		 * 
+		 * @param acronym
+		 * @return 
+		 * 
+		 */
+		public function getStepTitleByAcronym(acronym:String):String {
+			var step:StepModel = getStepByAcronym(acronym);
+			
+			if(step) return step.title;
+			
+			return null;
+		}
+		
+		
+		//****************** PUBLIC METHODS - ACTIONS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param stepId
+		 * @param pinId
+		 * @return 
+		 * 
+		 */
+		public function addPinToStep(stepId:int, pinId:int):void {
+			var step:StepModel = getStepById(stepId)
 			step.addDoc(pinId);
-			return step;
+			
+			//dispatch Event
+			var data:Object = {};
+			data.step = step;
+			
+			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_STEP, data));
+			
 		}
 		
-		public function removePinFromStep(stepId:int, pinId:int):AbstractStep {
-			var step:AbstractStep = getStep(stepId);
+		/**
+		 * 
+		 * @param stepId
+		 * @param pinId
+		 * @return 
+		 * 
+		 */
+		public function removePinFromStep(stepId:int, pinId:int):void {
+			var step:StepModel = getStepById(stepId);
 			step.removeDoc(pinId);
-			return step;
+			
+			//dispatch Event
+			var data:Object = {};
+			data.step = step;
+			
+			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_STEP, data));
 		}
 		
 	}

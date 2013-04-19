@@ -19,63 +19,75 @@ package {
 	
 	import view.OrlandoView;
 	
-	[SWF(width="1150", height="650", backgroundColor="#ffffff", frameRate="30")]
+	[SWF(width="1260", height="700", backgroundColor="#ffffff", frameRate="60")]
 	public class Workflow extends Sprite {
 		
-		//properties
-		private var structureModel:StructureModel;			//Model of Orlando Project's Workflow	
-		private var dataModel:DataModel;					//Model of Orlando Project's Data
-		private var workflowController:WorkflowController	//Controller of the Orlando Project's view
-		private var orlandoView:OrlandoView;				//View of Orlando Project's View
+		//****************** Properties ****************** ****************** ******************
 		
-		private var background:Sprite 
-		private var url:URLRequest;
-		private var loader:Loader;
+		protected var structureModel			:StructureModel;			//Structure
+		protected var dataModel					:DataModel;					//Documents Data
+		protected var workflowController		:WorkflowController			//Controller
+		protected var orlandoView				:OrlandoView;				//Main View;
 		
-		private var logo:Sprite;
+		protected var settings					:Settings;					//Settings
+		
+		protected var logo						:Sprite;
+
+		
+		//****************** Constructor ****************** ****************** ******************
 		
 		public function Workflow() {
 			
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
+			//settings
+			settings = new Settings();
+			
 			//background
-			background = new Sprite();
-			url = new URLRequest("images/new_background4.jpg");
-			loader = new Loader();
+			var background:Sprite = new Sprite();
+			var loader:Loader = new Loader();
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loadImage)
-			loader.load(url);
+			loader.load(new URLRequest("images/new_background4.jpg"));
 			background.addChild(loader)
 			background.alpha = .3;
 			addChild(background);
 			
 			//logo
 			logo = new Sprite();
-			url = new URLRequest("images/logo.png");
+			this.addChild(logo);
 			
 			var loaderLogo:Loader = new Loader();
 			loaderLogo.contentLoaderInfo.addEventListener(Event.COMPLETE, loadLogo)
-			loaderLogo.load(url);
+			loaderLogo.load( new URLRequest("images/logo.png"));
 			logo.addChild(loaderLogo);
 			logo.blendMode = "multiply";
 			logo.alpha = .9;
 			logo.cacheAsBitmap = true;
-			this.addChild(logo);
 			
-			//Starting models
+			//Start models
 			structureModel = new StructureModel();
-			dataModel = new DataModel();
 			
+			dataModel = new DataModel();
 			dataModel.addEventListener(Event.COMPLETE, _loadWorkFlow);
 			
-			//starting controler
+			//Start controler
 			workflowController = new WorkflowController([structureModel,dataModel]);
 			
 			//Starting View
 			orlandoView = new OrlandoView(workflowController);
 			addChild(orlandoView);
+			workflowController.setView(orlandoView);
 		}
 		
+		
+		//****************** Protected Methods ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param event
+		 * 
+		 */
 		protected function loadLogo(event:Event):void {
 			var img:Bitmap = event.currentTarget.content;
 			img.x = -img.width/2;
@@ -87,12 +99,25 @@ package {
 			TweenMax.from(logo,3,{alpha:0, x:-img.width/2, rotation:-400, delay:1, ease: Back.easeOut});
 		}
 		
-		private function loadImage(e:Event):void {
-			background.width = stage.stageWidth;
-			background.height = stage.stageHeight;
+		
+		//****************** EVENTS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param e
+		 * 
+		 */
+		protected function loadImage(event:Event):void {
+			event.target.content.width = stage.stageWidth;
+			event.target.content.height = stage.stageHeight;
 		}
 		
-		private function _loadWorkFlow(e:Event):void {
+		/**
+		 * 
+		 * @param e
+		 * 
+		 */
+		protected function _loadWorkFlow(e:Event):void {
 			orlandoView.init();
 		}
 	}

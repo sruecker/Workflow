@@ -1,206 +1,262 @@
 package controller {
 	
 	//imports
-	import events.OrlandoEvent;
-	
-	import flash.events.Event;
-	import flash.events.EventDispatcher;
-	import flash.events.MouseEvent;
-	
 	import model.DataModel;
+	import model.DocLogItem;
+	import model.StatusFlag;
 	import model.StructureModel;
 	
 	import mvc.AbstractController;
 	import mvc.Observable;
 	
+	/**
+	 * 
+	 * @author lucaju
+	 * 
+	 */
 	public class WorkflowController extends AbstractController {
 		
-		//properties
+		//****************** Proprieties ****************** ****************** ******************
+		
 		private var _model:Observable;			//generic model
 		
-		public function WorkflowController(list:Array) {
-			
-			super(list);
-			
-		}
-	
-		//---------- struture controls
-		public function getStepsData():Array {
-			_model = getModel("structure");
-			var stepsColletion:Array = StructureModel(_model).getStepCollection();
-			
-			return stepsColletion;
+		
+		//****************** Constructor ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param modelList
+		 * 
+		 */
+		public function WorkflowController(modelList:Array) {	
+			super(modelList);
 		}
 		
-		public function getGroupsData():Array {
-			_model = getModel("structure");
-			var groupColletion:Array = StructureModel(_model).getGroupsCollection();
-			
-			return groupColletion;
-		}
+		
+		//****************** STRUCTURE METHODS - GETTERS ****************** ****************** ******************
 	
-		public function addPinToStep(pinId:int, newStepId:int):void {
-			_model = getModel("structure");
-			//add to new step
-			var updateObject:Object = StructureModel(_model).addPinToStep(newStepId,pinId);
-			updateStep(newStepId, updateObject)
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
+		public function getStepCollection():Array {
+			var mStrucutre:StructureModel = this.getModel("structure") as StructureModel;
+			var stepCollection:Array = mStrucutre.getStepCollection();
+			return stepCollection;
 		}
 		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
+		public function getGroupCollection():Array {
+			var mStrucutre:StructureModel = this.getModel("structure") as StructureModel;
+			var groupCollections:Array = mStrucutre.getGroupsCollection();
+			return groupCollections;
+		}
+	
+		/**
+		 * 
+		 * @param value
+		 * @return 
+		 * 
+		 */
 		public function getStepTitleByAcronym(value:String):String {
-			_model = getModel("structure");
-			var title:String = StructureModel(_model).getStepTitleByAcronym(value);
+			var mStrucutre:StructureModel = this.getModel("structure") as StructureModel;
+			var title:String = mStrucutre.getStepTitleByAcronym(value);
 			return title;
 		}
 		
-		//---------- Pin Actions
 		
+		//****************** STRUCTURE METHODS - ACTIONS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param pinId
+		 * @param newStepId
+		 * 
+		 */
+		public function addPinToStep(pinId:int, newStepId:int):void {
+			var mStrucutre:StructureModel = this.getModel("structure") as StructureModel;
+			mStrucutre.addPinToStep(newStepId,pinId);
+		}
+		
+		
+		//****************** DOCUMENT METHODS - GETTERS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
 		public function getPinsData():Array {
-			_model = getModel("data");
-			var pinsColletion:Array = DataModel(_model).getPinCollection();
-			
+			var mData:DataModel = getModel("data") as DataModel;
+			var pinsColletion:Array = mData.getDocumentCollection();
 			return pinsColletion;
 		}
 		
 		/**
-		 * Pin Click - Show the info Balloon.
-		 * 1. Get the right title in the model
-		 * 2. Create a balloon in the main view
+		 * 
+		 * @param id
+		 * @return 
+		 * 
 		 */
 		public function getPinTitle(id:int):String {
-			_model = getModel("data");
-			var title:String = DataModel(_model).getPinTitle(id);
+			var mData:DataModel = getModel("data") as DataModel;
+			var title:String = mData.getDocumentTitle(id);
 			return title;
 		}
 		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
 		public function getPinAuthority(id:int):String {
-			_model = getModel("data");
-			var authority:String = DataModel(_model).getPinAuthority(id);
+			var mData:DataModel = getModel("data") as DataModel;
+			var authority:String = mData.getDocumentAuthority(id);
 			return authority;
 		}
 		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
 		public function getPinSource(id:int):String {
-			_model = getModel("data");
-			var source:String = DataModel(_model).getPinSource(id);
+			var mData:DataModel = getModel("data") as DataModel;
+			var source:String = mData.getDocumentSource(id);
 			return source;
 		}
 		
-		public function getPinActualFlag(id:int):String {
-			_model = getModel("data");
-			var source:String = DataModel(_model).getPinFlag(id);
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinCurrentFlag(id:int):StatusFlag {
+			var mData:DataModel = getModel("data") as DataModel;
+			var currentFlag:StatusFlag = mData.getDocumentCurrentFlag(id);
+			return currentFlag;
+		}
+		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinCurrentStep(id:int):String {
+			var mData:DataModel = getModel("data") as DataModel;
+			var source:String = mData.getDocumentCurrentStep(id);
 			return source;
 		}
 		
-		public function getPinActualStep(id:int):String {
-			_model = getModel("data");
-			var source:String = DataModel(_model).getPinStep(id);
-			return source;
-		}
-		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
 		public function getPinLog(id:int):Array {
-			_model = getModel("data");
-			var log:Array = DataModel(_model).getPinLog(id);
+			var mData:DataModel = getModel("data") as DataModel;
+			var log:Array = mData.getDocumentLogHistory(id);
 			return log;
 		}
 		
-		
-		public function killBalloon(id:int):void {
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.KILL_BALLOON, id));
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinLastLog(id:int):DocLogItem {
+			var log:Array = this.getPinLog(id);
+			return log[log.length-1] as DocLogItem;
 		}
 		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinCurrentResponsible(id:int):String {
+			var mData:DataModel = getModel("data") as DataModel;
+			var currentResponsible:String = mData.getDocumentCurrentResponsible(id);
+			return currentResponsible;
+		}
+		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinCurrentNote(id:int):String {
+			var mData:DataModel = getModel("data") as DataModel;
+			var curentNote:String = mData.getDocumentCurrentNote(id);
+			return curentNote;
+		}
+		
+		
+		//****************** DOCUMENT METHODS - ACTIONS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param pinId
+		 * @param newStepId
+		 * 
+		 */
 		public function changePinLocation(pinId:int, newStepId:int):void {
-			//gather the data into a object
-			var data:Object = new Object();
 			
-			//get new date
-			var today:Date = new Date();
-			var date:String = today.getDate() + " " + today.getMonth() + " " + today.getFullYear();
-			data.date = date;
+			//call models
+			var mStructure:StructureModel = getModel("structure") as StructureModel;
+			var mData:DataModel = getModel("data") as DataModel;
 			
-			//get new responsable
-			var resp:String = "WFM";
-			data.responsible = resp;
+			//get previous document step
+			var prevStepAcronym:String = mData.getDocumentCurrentStep(pinId);
 			
 			//get new step
-			_model = getModel("structure");
-			var newStepAcronym:String = StructureModel(_model).getStepAcronym(newStepId);
-			data.step = newStepAcronym;
+			var newStepAcronym:String = mStructure.getStepAcronym(newStepId);
 			
-			//get new flag
-			var flag:String = null;
-			data.flag = flag;
-			
-			//get previous pin step
-			_model = getModel("data");;
-			var prevStepAcronym:String = DataModel(_model).getPinStep(pinId);	//save previous step reference
-			
-			//add to pin log
-			var updateObject:Object = DataModel(_model).addPinLog(pinId, data);
-			
-			//update pin
-			updatePin(newStepId, updateObject)
+			//update Document
+			mData.updateDocument(pinId,"",newStepAcronym);
 			
 			//update pin counter - add to new step
-			_model = getModel("structure");
-			updateObject = StructureModel(_model).addPinToStep(newStepId,pinId);
-			updateStep(newStepId, updateObject)
+			mStructure.addPinToStep(newStepId,pinId);
 			
 			//update pin counter - remove from the old step
-			var prevPinId:int = StructureModel(_model).getStepByAcronym(prevStepAcronym);
-			updateObject = StructureModel(_model).removePinFromStep(prevPinId,pinId);
-			updateStep(newStepId, updateObject)
-
+			var prevPinId:int = mStructure.getStepIdByAcronym(prevStepAcronym);
+			mStructure.removePinFromStep(prevPinId,pinId);
+			
 		}
 		
-		public function updatePin(pinId:int, data:Object):void {
-			var update:OrlandoEvent = new OrlandoEvent(OrlandoEvent.UPDATE_PIN, pinId);
-			update.data = data;
-			this.dispatchEvent(update);
+		/**
+		 * 
+		 * @param pinId
+		 * @param flag
+		 * 
+		 */
+		public function updatePinFlag(pinId:int, flag:String):void {
+			var mData:DataModel = getModel("data") as DataModel;
+			mData.updateDocument(pinId,flag);
 		}
 		
-		public function updateStep(stepId:int, data:Object):void {
-			var update:OrlandoEvent = new OrlandoEvent(OrlandoEvent.UPDATE_STEP, stepId);
-			update.data = data;
-			this.dispatchEvent(update);
-		}
-		
-		public function changePinFlag(pinId:int, flag:String):void {
-			
-			_model = getModel("data");
-			
-			//gather the data into a object
-			var data:Object = new Object();
-			
-			//get new date
-			var today:Date = new Date();
-			var date:String = today.getDate() + " " + today.getMonth() + " " + today.getFullYear();
-			data.date = date;
-			
-			//get new responsable
-			var resp:String = "WFM";
-			data.responsible = resp;
-			
-			//get actual step
-			data.step = DataModel(_model).getPinStep(pinId);;
-			
-			//get new flag
-			data.flag = flag;
-			
-			//add to pin log
-			var updateObject:Object = DataModel(_model).addPinLog(pinId, data);
-			
-			//update pin
-			updatePin(pinId, updateObject)
-		}
-		
+		/**
+		 * 
+		 * @param pinId
+		 * @param tag
+		 * 
+		 */
 		public function tagPin(pinId:int, tag:Boolean):void {
-			_model = getModel("data");
-			DataModel(_model).setPinTagged(pinId, tag);
-		}
-		
-		public function activatePin(pinId:int, data:Object):void {
-			var update:OrlandoEvent = new OrlandoEvent(OrlandoEvent.ACTIVATE_PIN, pinId);
-			update.data = data;
-			this.dispatchEvent(update);
+			var mData:DataModel = getModel("data") as DataModel;
+			mData.setDocumentTagged(pinId, tag);
 		}
 	}
 }

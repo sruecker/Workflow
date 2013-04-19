@@ -3,13 +3,21 @@ package view.graphic {
 	//imports
 	import flash.display.Sprite;
 	
+	/**
+	 * 
+	 * @author lucaju
+	 * 
+	 */
 	public class ShadowLine extends Sprite{
 		
-		//properties
+		//****************** Constructor ****************** ****************** ******************
 		
+		/**
+		 * 
+		 * @param w
+		 * 
+		 */
 		public function ShadowLine(w:uint) {
-			super();
-			
 			var shadow:Sprite = new Sprite();
 			
 			shadow.graphics.beginGradientFill("linear",[0x000000,0xFFFFFF],[1,0],[0,255]);

@@ -3,10 +3,21 @@ package view.graphic {
 	//imports
 	import view.graphic.AbstractShape;
 	
+	/**
+	 * 
+	 * @author lucaju
+	 * 
+	 */
 	public class Rect extends AbstractShape {
 		
-		//properties
+		//****************** Constructor ****************** ****************** ******************
 		
+		/**
+		 * 
+		 * @param w
+		 * @param h
+		 * 
+		 */
 		public function Rect(w:Number, h:Number) {
 			
 			super("rect")
@@ -15,9 +26,14 @@ package view.graphic {
 			_hDef = h;
 		}
 		
+		
+		//****************** PUBLIC METHODS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * 
+		 */
 		override public function drawShape():void {
-			
-			//create shape
 			this.graphics.beginFill(color);
 			this.graphics.drawRect(0,0,wDef,hDef);
 			this.graphics.endFill();

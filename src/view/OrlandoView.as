@@ -2,177 +2,204 @@ package view {
 	
 	//imports
 	import com.greensock.TweenMax;
+	import com.greensock.TweenProxy;
 	import com.greensock.easing.Back;
 	
-	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import controller.WorkflowController;
 	
 	import events.OrlandoEvent;
 	
-	import model.AbstractDoc;
-	import model.AbstractStep;
+	import model.DocumentModel;
+	import model.GroupModel;
+	import model.StepModel;
 	
 	import mvc.AbstractView;
 	import mvc.IController;
 	
 	import util.DeviceInfo;
 	
+	import view.list.PinList;
+	import view.list.PinListItem;
+	import view.pin.PinView;
+	import view.step.GroupView;
+	import view.step.StepView;
+	import view.tooltip.ToolTipManager;
+	import view.util.scroll.Scroll;
+	import view.util.scroll.ScrollEvent;
+	
 	public class OrlandoView extends AbstractView {
 		
-		//properties
-		static public var workflowController:WorkflowController				//controller
+		//****************** Properties ****************** ****************** ******************
 		
-		private var stepCollection:Array;								//Collection of StepView
-		private var groupCollection:Array;								//Collection of GroupsView
-		private var pinCollection:Array;								//Collection of PinsView
-		private var balloonCollection:Array;							//collection of ballons
+		protected var stepCollection				:Array;				//Collection of StepView
+		protected var groupCollection				:Array;				//Collection of GroupsView
+		protected var pinCollection					:Array;				//Collection of PinsView
 		
-		private var stepsContainer:Sprite;								//**
-		private var stepsSuperContainer:Sprite;							//**
-		private var stepsSize:Object;
-		private var stepView:StepView;									//Gerneric StepView
+		protected var stepsContainer				:Sprite;			//**
+		protected var stepsSuperContainer			:Sprite;			//**
+		protected var workflowContainerSize			:Object;
 		
-		private var groupView:GroupView;								//Gerneric GroupView
-		private var pinView:PinView;									//Gerneric PinView
-		private var pinList:PinList;									//PinList
-		private var balloon:BalloonView									//Balloon
+		protected var pinList						:PinList;			//PinList
+		protected var toolTipManager				:ToolTipManager;
 		
-		private var lines:Sprite;										//line connection
+		protected var scroll						:Scroll;
 		
-		internal var slot:int = 150;									//Horizontal Slot
-		internal var xPos:int = 150;									//Initial Horizonal Postition
-		internal var yPos:int = 325;									//Initial Vertical Position
+		protected var scrolledArea					:Sprite;
+		protected var shapeContainer				:Sprite;
+		protected var containerMask					:Sprite;
 		
-		private var stepHit:StepView;
-		private var stepHitInside:Boolean;
+		protected var connectionLines				:Sprite;			//line connection
 		
-		private var regiPoint:Point;
+		protected var slot							:int = 150;			//Horizontal Slot
+		protected var xPos							:int = 150;			//Initial Horizonal Postition
+		protected var yPos							:int = 325;			//Initial Vertical Position
 		
-		private var actualScale:Number = 1;
-		private var minScale:Number = 1;
-		private var maxScale:Number = 6;
+		protected var stepHit						:StepView;
+		protected var stepHitInside					:Boolean;
 		
+		private var currentScale					:Number = 1;
+		private var minScale						:Number = 1;
+		private var maxScale						:Number = 6;
+		
+		
+		//****************** Constructor ****************** ****************** ******************
+
 		/**
-		 * Contructor
-		 **/
+		 * 
+		 * @param c
+		 * 
+		 */
 		public function OrlandoView(c:IController) {
-			
-			
 			super(c);
-			
-			workflowController = WorkflowController(c);
-			
 		}
 		
+		
+		//****************** Initialize ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * 
+		 */
 		public function init():void {
 			
+			//Get controller
+			var wController:WorkflowController = this.getController() as WorkflowController;
+			
+			//Space and position if iPhone
 			if (DeviceInfo.os() != "Mac") {
 				slot = 300;
 				xPos = 300;
 				yPos = 650;
 			}
 			
-			//base
+			//base Background
 			this.graphics.beginFill(0xFFFFFF,0);
 			this.graphics.drawRect(0, 0, stage.stageWidth, stage.stageHeight);
 			this.graphics.endFill();
 			
-			//init
+			//initials
 			yPos = this.stage.stageHeight/2;
-			
 			stepCollection = new Array();
 			groupCollection = new Array();
 			pinCollection = new Array();
 			
-			
-			//listenter
-			workflowController.addEventListener(OrlandoEvent.UPDATE_STEP, updateStep);
-			workflowController.addEventListener(OrlandoEvent.UPDATE_PIN, updatePin);
-			workflowController.addEventListener(OrlandoEvent.KILL_BALLOON, removeBalloon);
-			workflowController.addEventListener(OrlandoEvent.ACTIVATE_PIN, activatePin);
-			
-			//get structure data
+			//Containers
 			stepsSuperContainer = new Sprite();//*
+			stepsSuperContainer.graphics.beginFill(0xFFFFFF,0);
+			stepsSuperContainer.graphics.drawRect(0,0,stage.stageWidth, stage.stageHeight);
+			stepsSuperContainer.graphics.endFill();
+			this.addChild(stepsSuperContainer);  //*
+			
 			stepsContainer = new Sprite();  //*
 			stepsSuperContainer.addChild(stepsContainer)//*
-			addChild(stepsSuperContainer);  //*
 			
-			generateSteps(workflowController.getStepsData());
+			
+			//get structure data
+			generateSteps(wController.getStepCollection());
 			
 			//get group data
-			generateGroups(workflowController.getGroupsData());
+			generateGroups(wController.getGroupCollection());
 			
 			//draw lines
 			lineGen();
 			
 			//get pin data
-			generatePins(workflowController.getPinsData());
+			generatePins(wController.getPinsData());
 			
 			//Pin List
-			pinList = new PinList();
+			pinList = new PinList(this.getController());
 			addChild(pinList);
-			pinList.initialize(workflowController.getPinsData());
-				
-			//registration
-			regiPoint = new Point(stage.stageWidth/2, stage.stageHeight);
-			
-			//*
+			pinList.initialize(wController.getPinsData());
 			
 			
-			stepsContainer.x = -stepsContainer.width/2;
-			stepsContainer.y = -stepsContainer.height/2;
+			workflowContainerSize = {w:stepsSuperContainer.width, h:stepsSuperContainer.height};
 			
-			stepsSuperContainer.x = stepsSuperContainer.width/2;
-			stepsSuperContainer.y = stepsSuperContainer.height/2;
+			//tooltip
+			toolTipManager = new ToolTipManager(this);
+			this.addEventListener(Event.CLEAR, toolTipClear);
 			
-			stepsSize = {w:stepsSuperContainer.width, h:stepsSuperContainer.height};
+			//scroll system
+			//mask for container
+			containerMask = new Sprite();
+			containerMask.graphics.beginFill(0xFFFFFF,0);
+			containerMask.graphics.drawRect(stepsSuperContainer.x, stepsSuperContainer.y, this.stage.stageWidth, this.stage.stageHeight);
+			this.addChild(containerMask);
+			stepsSuperContainer.mask = containerMask
 			
-			//
-			this.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
-			this.addEventListener(TransformGestureEvent.GESTURE_PAN, pan);
-		}
+			//add scroll system
+			scroll = new Scroll();
+			scroll.direction = "both";
+			scroll.target = stepsContainer;
+			scroll.maskContainer = containerMask;
+			scroll.friction = .9;
+			this.addChild(scroll);
+			scroll.init();
+			
+			//listenter
+			wController.getModel("data").addEventListener(OrlandoEvent.UPDATE_PIN, updatePin);
+			wController.getModel("structure").addEventListener(OrlandoEvent.UPDATE_STEP, updateStep);
+			pinList.addEventListener(OrlandoEvent.SELECT_PIN, pinListSelect);
+			stepsSuperContainer.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
+			this.addEventListener(ScrollEvent.SCROLL, scalePins);
+			this.addEventListener(ScrollEvent.INERTIA, scalePins);
+		}		
+		
+		
+		//****************** PRIVATE METHODS - BUILD ****************** ****************** ******************
 		
 		/**
-		 * Returns the default controller for this view.
-		 */
-		/*
-		override public function defaultController (model:Observable):IController {
-			return new WorkflowController(model);
-		}
-		*/
-		
-		/**
-		 * Generate all the steps view in the screen.
+		 * Generate all steps view.
 		 * 1. Steps
 		 * 2. Groups
 		 * 3. Line connections
+		 *  
+		 * @param data
+		 * 
 		 */
-		
 		private function generateSteps(data:Array):void {
 			
+			var stepView:StepView;
 			
-			
-			for (var i:int = 0; i< data.length; i++) {
+			//loop
+			for each (var stepMoldel:StepModel in data) {
 				
-				//create step view and pass the information
-				stepView = new StepView(workflowController, data[i]);
+				//create new step view
+				stepView = new StepView(this.getController(), stepMoldel);
+				stepCollection.push(stepView);
 				
-				//add step view to a collection
-				stepCollection.push(stepView)
+				stepsContainer.addChildAt(stepView,0); 
+				stepView.cacheAsBitmap;
 				
-				
+				//scale if iphone
 				if (DeviceInfo.os() != "Mac") { 
 					stepView.scaleX = stepView.scaleY = 2;
 				}
-					
-				//add to screen
-				stepsContainer.addChildAt(stepView,0);   //**
-				stepView.cacheAsBitmap;
 				
 				//------positioning
 				
@@ -190,171 +217,156 @@ package view {
 					//out of sequence
 				} else {
 					stepView.y = 20;
-					stepView.x = this.stage.stageWidth - ((stepView.level*-1) * slot);
-						
+					stepView.x = this.stage.stageWidth - ((stepView.level*-1) * slot);	
 				}
 				
-				//clear
-				stepView = null;
 			}
-			
-			
 			
 		}
 		
-	
 		/**
 		 * Group Generator
+		 *  
+		 * @param data
 		 * 
-		 * @param	name	lenght - lenght of group collection 
 		 */
 		private function generateGroups(data:Array):void {
 			
-			for (var i:int = 0; i < data.length; i++) {
+			var groupView:GroupView;
+			
+			//loop
+			for each (var groupModel:GroupModel in data) {
 				
+				//create groupView
+				groupView = new GroupView(this.getController(), groupModel);
+				groupCollection.push(groupView)
+				stepsContainer.addChildAt(groupView,0);
 				
-				//create step view and pass the information
-				groupView = new GroupView(workflowController, data[i]);
-				
-				//add stepviews to the group
+				//add stepView to the group
 				for each(var s:StepView in stepCollection) {
-					if(s.group == data[i].id) {
+					if(s.group == groupModel.id) {
 						groupView.addStep(s);
 					}
 				}
-				
-				//add step view to a collection
-				groupCollection.push(groupView)
-				
-				//add to screen
-				//addChildAt(groupView,0);
-				stepsContainer.addChildAt(groupView,0);
 				
 				//position
 				groupView.x = xPos + (groupView.level * slot) - 15;
 				
 				//create UI
-				groupView.createUI(yPos);
-				
-				
+				groupView.init(yPos);
 			}
 			
 		}
-		
 		
 		/**
 		 * Line Conection Generator
 		 * 
 		 **/
 		private function lineGen():void {
-			lines = new Sprite();
 			
+			connectionLines = new Sprite();
 			
 			if (DeviceInfo.os() != "Mac") { 
 				
-				lines.x = xPos + 100;
-				lines.y = yPos + 100;
+				connectionLines.x = xPos + 100;
+				connectionLines.y = yPos + 100;
 				
-				lines.graphics.lineStyle(20,0xCCCCCC,0.3);
-				lines.graphics.beginFill(0xFFFFFF);
-				lines.graphics.lineTo(1480,0);
-				lines.graphics.lineTo(1480,300);
-				lines.graphics.lineTo(1180,300);
-				lines.graphics.lineTo(1180,0);
+				connectionLines.graphics.lineStyle(20,0xCCCCCC,0.3);
+				connectionLines.graphics.beginFill(0xFFFFFF);
+				connectionLines.graphics.lineTo(1480,0);
+				connectionLines.graphics.lineTo(1480,300);
+				connectionLines.graphics.lineTo(1180,300);
+				connectionLines.graphics.lineTo(1180,0);
 				
 			} else {
 				
-				lines.x = xPos + 50;
-				lines.y = yPos + 50;
+				connectionLines.x = xPos + 50;
+				connectionLines.y = yPos + 50;
 				
-				lines.graphics.lineStyle(10,0xCCCCCC,0.3);
-				lines.graphics.beginFill(0xFFFFFF);
-				lines.graphics.lineTo(740,0);
-				lines.graphics.lineTo(740,150);
-				lines.graphics.lineTo(590,150);
-				lines.graphics.lineTo(590,0);
+				connectionLines.graphics.lineStyle(10,0xCCCCCC,0.3);
+				connectionLines.graphics.beginFill(0xFFFFFF);
+				connectionLines.graphics.lineTo(740,0);
+				connectionLines.graphics.lineTo(740,150);
+				connectionLines.graphics.lineTo(590,150);
+				connectionLines.graphics.lineTo(590,0);
 			}
 			
 			
-			lines.graphics.endFill();
+			connectionLines.graphics.endFill();
 			
-			
-			
-			lines.blendMode = "multiply";
-			
-			stepsContainer.addChildAt(lines,0);
-			
+			connectionLines.blendMode = "multiply";
+			stepsContainer.addChildAt(connectionLines,0);
 		}
 		
-		
 		/**
-		 * Generate all the pins view on the screen.
+		 * Generate pins.
+		 *  
+		 * @param data
+		 * 
 		 */
-		
 		private function generatePins(data:Array):void {
 		
-			for (var i:int = 0; i< data.length; i++) {
+			var pinView:PinView;
+			var i:int = 0;
+			
+			//loop
+			for each(var doc:DocumentModel in data) {
 				
-				//create pin view and pass the information
-				pinView = new PinView(data[i].id);
-				pinView.actualFlag = data[i].actualFlag
-				pinView.tagged = data[i].isTagged;
-				pinView.actualStep = data[i].actualStep;
+				//create pin view
+				pinView = new PinView(this.getController(), doc.id);
+				pinView.currentFlag = doc.currentStatus;
+				pinView.tagged = doc.isTagged;
+				pinView.currentStep = doc.currentStep;
+				
+				this.addChild(pinView);
 				pinView.init();
 				
-				
-				if (DeviceInfo.os() != "Mac") { 
-					pinView.scaleX = pinView.scaleY = 2;
-				}
-				
-				//add pin view to a collection
 				pinCollection.push(pinView);
 				
-				//add to screen
-				addChild(pinView);
-				
+				//listeners
+				pinView.addEventListener(OrlandoEvent.DRAG_PIN, hitTest);
+				pinView.addEventListener(OrlandoEvent.SELECT_PIN, clickPin);
 				
 				//------Pin position and step count box
-				for each(var item:StepView in stepCollection) {
-					if (item.acronym.toLowerCase() == data[i].actualStep) {
-						var info:Object = item.getPositionForPin();
-						
-						if (DeviceInfo.os() != "Mac") { 
-							info.width = info.width * 2;
-							info.height = info.height * 2;
-						}
-						
-						var ratioX:Number = Math.random(); // **
-						var ratioY:Number = Math.random(); // **
-						
-						pinView.ratioPos = {w:ratioX, h:ratioY};
-						
-						//random position inside the step active area.
-						var xR:Number = info.x + pinView.width/2 + (ratioX * ((info.width) - pinView.width));
-						var yR:Number = info.y + pinView.height/2 + (ratioY * (info.height - pinView.height));
-						
-						pinView.x = xR;
-						pinView.y = yR;
-						
-						//animation
-						//and
-						//change the counbox in the step just on the start of the animation
-						TweenMax.from(pinView,1.5,{alpha:0, scaleX:0, scaleY:0, delay:2+(i*.15), ease:Back.easeOut, onStart: workflowController.addPinToStep, onStartParams: [pinView.id, item.id]});
-						//TweenMax.from(pinView,2,{x:-100, y:350, delay:2+(i*.2), ease:Back.easeOut, onStart: workflowController.addPinToStep, onStartParams: [pinView.id, item.id]});
-						//TweenMax.from(pinView,2,{scaleX:50, scaleY:50, alpha:0, delay:2+(i*.2), ease:Bounce.easeOut, onStart: workflowController.addPinToStep, onStartParams: [pinView.id, item.id]});
-						//TweenMax.from(pinView,2,{z:-1000, alpha:0, delay:2+(i*.2), ease:Bounce.easeOut, onStart: workflowController.addPinToStep, onStartParams: [pinView.id, item.id]});
-						//TweenMax.from(pinView,2,{x:info.x + pinView.width/2, y:info.y + pinView.height/2, alpha:0, delay:2+(i*.2), ease:Back.easeOut, onStart: workflowController.addPinToStep, onStartParams: [pinView.id, item.id]});
-						
-						//step count box
-						//change the counbox in the step
-						//workflowController.addPinToStep(pinView.id, item.id);
-						
+				var stepBounds:Rectangle;
+				
+				for each(var sp:StepView in stepCollection) {
+					if (sp.acronym.toLowerCase() == doc.currentStep.toLowerCase()) {
+						stepBounds = sp.getPositionForPin();
 						break;
 					}
 				}
-			
+						
+				//if iphone
+				if (DeviceInfo.os() != "Mac") { 
+					stepBounds.width = stepBounds.width * 2;
+					stepBounds.height = stepBounds.height * 2;
+					pinView.scaleX = pinView.scaleY = 2;
+				}
+				
+				var ratioX:Number = Math.random(); // **
+				var ratioY:Number = Math.random(); // **
+				
+				pinView.ratioPos = {w:ratioX, h:ratioY};
+				
+				//random position inside the step active area.
+				var xR:Number = stepBounds.x + pinView.width/2 + (ratioX * (stepBounds.width - pinView.width));
+				var yR:Number = stepBounds.y + pinView.height/2 + (ratioY * (stepBounds.height - pinView.height));
+				
+				pinView.x = xR;
+				pinView.y = yR;
+				
+				//animation
+				//and
+				//change  counbox in the step just on the start of the animation
+				TweenMax.from(pinView,1.5,{alpha:0, scaleX:0, scaleY:0, delay:2+(i*.15), ease:Back.easeOut, onStart: WorkflowController(this.getController()).addPinToStep, onStartParams: [pinView.id, sp.id]});
+				//TweenMax.from(pinView,2,{x:-100, y:350, delay:2+(i*.2), ease:Back.easeOut, onStart: WorkflowController(this.getController()).addPinToStep, onStartParams: [pinView.id, item.id]});
+				//TweenMax.from(pinView,2,{scaleX:50, scaleY:50, alpha:0, delay:2+(i*.2), ease:Bounce.easeOut, onStart: WorkflowController(this.getController()).addPinToStep, onStartParams: [pinView.id, item.id]});
+				//TweenMax.from(pinView,2,{z:-1000, alpha:0, delay:2+(i*.2), ease:Bounce.easeOut, onStart: WorkflowController(this.getController()).addPinToStep, onStartParams: [pinView.id, item.id]});
+				//TweenMax.from(pinView,2,{x:info.x + pinView.width/2, y:info.y + pinView.height/2, alpha:0, delay:2+(i*.2), ease:Back.easeOut, onStart: WorkflowController(this.getController()).addPinToStep, onStartParams: [pinView.id, item.id]});
+				
+				i++;
 			}
-			
 			
 			//animation
 			initMainAnimation();
@@ -366,147 +378,129 @@ package view {
 		 * 
 		 **/
 		private function initMainAnimation():void {
-			//animationt
 			TweenMax.allFrom(stepCollection,2,{alpha:0},.05);
 			TweenMax.allFrom(groupCollection,1,{alpha:0},.1);
-			TweenMax.from(lines,1.5,{alpha:0});
+			TweenMax.from(connectionLines,1.5,{alpha:0});
 		}
 		
+		
+		//****************** EVENTS - TOOLTIP ****************** ****************** ******************
 		
 		/**
-		 * Create Baloon
+		 * Add or remove tooltip depending on the pinView status
 		 * 
-		 **/
-		public function createBalloon(info:Object):void {
+		 * @param pin
+		 * @param status
+		 * 
+		 */
+		protected function manageToolTip(pin:PinView, status:String):void {
 			
-			//start balloon collection if it is not set already
-			if(!balloonCollection) {
-				balloonCollection = new Array();
-			}
-			
-			//create an instace of a balloon
-			balloon = new BalloonView(workflowController, info.id);
-			
-			if (DeviceInfo.os() != "Mac") { 
-				balloon.scaleX = balloon.scaleY = 2;
-			}
-			
-			balloonCollection.push(balloon);
-			addChild(balloon);
-			
-			balloon.initialize(info);
-			
-			//send event to the list
-			var data:Object = new Object();
-			data.source = "workflow";
-			data.action = "single";
-			data.selected = true;
-			data.controlView = false;
-			
-			workflowController.activatePin(info.id,data);
-		}
-		
-		//change balloon layer
-		public function changeLayer(target:Sprite):void {
-			this.setChildIndex(target, this.numChildren-1);
-		}
-		
-		public function removeBalloon(e:OrlandoEvent):void {
-			
-			//get balloon
-			for (var i:int = 0; i< balloonCollection.length; i++) {
+			switch (status) {
+				case "deselected":
+					ToolTipManager.removeToolTip(pin.id);
+					break;
 				
-				
-				if (balloonCollection[i].id == e.id) {
+				case "selected":  //add Tooltip
 					
-					balloon = balloonCollection[i];
-					
-					//evaluate vertical
-					var orig:Number;
-					switch (balloon.arrowDirection) {
-						case "bottom":
-							orig = balloon.y + 20;
-							break
+					if (!ToolTipManager.hasToolTip(pin.id)) {
+						var obj:Object = new Object();
+						obj.position = new Point(pin.x,pin.y);
+						obj.source = pin;
+						obj.id = pin.id;
+						obj.info = WorkflowController(this.getController()).getPinTitle(pin.id);
 						
-						case "top":
-							orig = balloon.y - 20;
-							break;
+						ToolTipManager.addToolTip(obj);
+					} else {
+						ToolTipManager.sendToFront(pin.id);
 					}
-					//animation
-					TweenMax.to(balloon, 1, {y: orig, alpha: 0, onComplete:removeItem, onCompleteParams:[balloon]});
-					
-					//remove from the list
-					balloonCollection.splice(i,1);
-					
-					//deactive ballon in pin
-					getPinById(balloon.id).balloonActive = false;
 					
 					break;
-				}
-			}
-			
-			//send event to the list
-			var data:Object = new Object();
-			data.source = "workflow";
-			data.action = "single";
-			data.selected = false;
-			data.controlView = false;
-			
-			workflowController.activatePin(e.id,data);
-			
-		}
-		
-		internal function removeItem(item:DisplayObject):void {
-			//remove from the screen
-			removeChild(item);
-		}
-		
-		public function getStepById(id:int):StepView {
-			for each(stepView in stepCollection) {
-				if (stepView.id == id) {
-					return stepView;
+				
+				case "edit":
+					ToolTipManager.removeToolTip(pin.id);
 					break;
-				}
 			}
-			return null;
+			
 		}
 		
-		public function getPinById(id:int):PinView {
-			for each(pinView in pinCollection) {
-				if (pinView.id == id) {
-					return pinView;
-					break;
+		/**
+		 * Remove all tooltips
+		 *  
+		 * @param event
+		 * 
+		 */
+		protected function toolTipClear(event:Event):void {
+			for each (var pin:PinView in pinCollection) {
+				if (pin.status == "selected") {
+					pin.changeStatus("deselected");
+					pinList.changePinStatus(pin.id, "deselected");
 				}
 			}
 			
-			return null;
 		}
 		
-		public function getPinInTheList(id:int):PinView {
-			for each(pinView in pinCollection) {
-				if (pinView.id == id) {
-					return pinView;
-					break;
-				}
-			}
+		
+		//****************** EVENTS - PIN & PINLIST ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param event
+		 * 
+		 */
+		protected function clickPin(event:OrlandoEvent):void {
+			var pin:PinView = event.target as PinView;
+
+			this.setChildIndex(pin, this.numChildren-1);			
+			pinList.changePinStatus(event.data.id, event.data.status);
+			manageToolTip(pin, event.target.status);
 			
-			return null;
+			event.stopPropagation();
+			event.stopImmediatePropagation();
+		}
+		
+		/**
+		 * 
+		 * @param event
+		 * 
+		 */
+		protected function pinListSelect(event:OrlandoEvent):void {
+			var pin:PinView = this.getPinById(event.data.id);
+			
+			this.setChildIndex(pin, this.numChildren-1);
+			pin.changeStatus(event.data.status);
+			manageToolTip(pin, event.data.status);
 		}
 		
 		
-		public function hitTest(item:PinView):void {
-			item.addEventListener(Event.ENTER_FRAME, hitTester);
+		//****************** EVENT - HIT TEST ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param event
+		 * 
+		 */
+		protected function hitTest(event:OrlandoEvent):void {
+			if (event.phase == "end") {
+				hitTestEnd(event.target as PinView);
+			} else {
+				hitTester(event.target as PinView);
+			}
 		}
 		
-		private function hitTester(e:Event):void {
-			pinView = PinView(e.target);
+		/**
+		 * 
+		 * @param pin
+		 * 
+		 */
+		protected function hitTester(pin:PinView):void {
+			
 			stepHitInside = false;			
 			var hitter:StepView;
 			
-			for each(stepView in stepCollection) {
-				if(pinView.hitTestObject(stepView)) {
+			for each(var stepView:StepView in stepCollection) {
+				if(pin.hitTestObject(stepView)) {
 					
-					if (stepView.acronym.toLowerCase() == pinView.actualStep.toLowerCase()) {
+					if (stepView.acronym.toLowerCase() == pin.currentStep.toLowerCase()) {
 						stepHitInside = true;
 					} else {
 						stepHitInside = false;
@@ -527,17 +521,35 @@ package view {
 			}
 		}
 		
-		public function hitTestEnd(pin:PinView):void {
-			pin.removeEventListener(Event.ENTER_FRAME, hitTester);
+		/**
+		 * 
+		 * @param pin
+		 * 
+		 */
+		protected function hitTestEnd(pin:PinView):void {
 			
-			// pin return to the origin
-			if (stepHit == null) {
+			if (stepHit == null) { // pin return to the origin
 				TweenMax.to(pin,1,{x:pin.originalPosition.x, y:pin.originalPosition.y, ease:Back.easeOut});
 			} else {
-				if (!stepHitInside) {
-					workflowController.changePinLocation(pin.id, stepHit.id);
+				
+				if (!stepHitInside) { // pin Change step
+					WorkflowController(this.getController()).changePinLocation(pin.id, stepHit.id);
 					stepHit.highlight(5);
+				} else {
+					pin.updatePosition();
+					//position - new Ratio
+					var sp:StepView = this.getStepByAcronym(pin.currentStep);
+					var stepActiveBounds:Rectangle = sp.getPositionForPin();
+					
+					var globalP:Point = new Point(pin.x, pin.y); 
+					var localP:Point = sp.globalToLocal(globalP);
+					
+					var xR:Number = localP.x/stepActiveBounds.width;
+					var yR:Number = localP.y/stepActiveBounds.height;
+					
+					pin.ratioPos = {w:xR, h:yR}	
 				}
+				
 			}
 			
 			//reset variables;
@@ -546,218 +558,204 @@ package view {
 		}
 
 		private function updateStep(e:OrlandoEvent):void {
-			var step:AbstractStep = AbstractStep(e.data);
-			stepView = getStepById(step.id);
+			var step:StepModel = StepModel(e.data.step);
+			var stepView:StepView = getStepById(step.id);
 			
 			//update countbox
 			stepView.updateCounter(step.docCount);
 		}
 		
-		private function updatePin(e:OrlandoEvent):void {
+		
+		//****************** EVENT - ACTION ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param event
+		 * 
+		 */
+		protected function updatePin(event:OrlandoEvent):void {
 			
+			var doc:DocumentModel = event.data.document as DocumentModel;
 			
-			var doc:AbstractDoc = AbstractDoc(e.data);
-			
-			//in the workflow
-			pinView = getPinById(doc.id);
-			
-			//in the list
+			//get targets
+			var pin:PinView = getPinById(doc.id);
 			var itemList:PinListItem = pinList.getItemById(doc.id);
 			
 			//update flag
-			pinView.flag = doc.actualFlag;
-			itemList.flag = doc.actualFlag;
+			pin.flag = doc.currentStatus;
+			itemList.flag = doc.currentStatus;
 			
 			//test if step was changed
 			var history:Array = doc.history;
 			
 			if(history[history.length-1].step != history[history.length-2].step) {
 
-				//update actual step
-				pinView.actualStep = doc.actualStep;
+				//update current step
+				pin.currentStep = doc.currentStep;
 				
-				//position
-				for each(var item:StepView in stepCollection) {
-					if (item.acronym.toLowerCase() == pinView.actualStep) {
-						var info:Object = item.getPositionForPin();
-						
-						//random position inside the step active area.
-						var xR:Number = info.x + pinView.width/2 + (Math.random() * (info.width - pinView.width));
-						var yR:Number = info.y + pinView.height/2 + (Math.random() * (info.height - pinView.height));
-						
-						TweenMax.to(pinView,3,{x:xR, y:yR, ease:Back.easeOut});
-						
-						break;
-					}
-				}
-			
+				//position - new Ratio
+				var sp:StepView = this.getStepByAcronym(pin.currentStep);
+				var stepActiveBounds:Rectangle = sp.getPositionForPin();
+				
+				var globalP:Point = new Point(pin.x, pin.y); 
+				var localP:Point = sp.globalToLocal(globalP);
+				
+				var xR:Number = localP.x/stepActiveBounds.width;
+				var yR:Number = localP.y/stepActiveBounds.height;
+				
+				pin.ratioPos = {w:xR, h:yR}	
+				
 			}
 			
 		}
 		
-		private function activatePin(e:OrlandoEvent):void {
-			
-			var data:Object = Object(e.data);
-			
-			
-			//from the list to the workflow
-			if (data.source == "list") {
-				
-				pinView = getPinById(e.id);
-				
-				if (data.action == "single") {
-					
-					if (pinView.bigView) {
-						pinView.closeBigView();
-					} else {
-						pinView.onSingleClick();
-					}
-					
-				} else if (data.action == "double" && !data.controlView) {
-					pinView.closeBigView();
-				} else if (data.action == "double" && data.controlView) {
-					pinView.onDoubleClick();
-				}
-			}
-			
-			//from the workflow to the list
-			if (data.source == "workflow") {
-				var itemList:PinListItem = pinList.getItemById(e.id);
-				itemList.changeStatus(data);
-			}
-			
-		}
 		
-		private function zoom(e:TransformGestureEvent):void {
-			
-			if (!(e.target is PinListItem) || !(e.target is PinList)) {
-			
-				//scale
-				stepsSuperContainer.scaleX *= e.scaleX;
-				stepsSuperContainer.scaleY *= e.scaleY;
-				
-				actualScale = stepsSuperContainer.scaleX;
-				
-				//limit zoom
-				if (e.phase == "end") {
-					if (stepsSuperContainer.scaleX < minScale || stepsSuperContainer.scaleY < minScale) {
-						TweenMax.to(stepsSuperContainer,.5,{x:stepsSize.w/2, y:stepsSize.h/2, scaleX:minScale, scaleY:minScale, onUpdate:scalePins});
-						actualScale = minScale;
-					} else if (stepsSuperContainer.scaleX > maxScale || stepsSuperContainer.scaleY > maxScale) {
-						TweenMax.to(stepsSuperContainer,.5,{x:stepsSize.w/2, y:stepsSize.h/2, scaleX:maxScale, scaleY:maxScale, onUpdate:scalePins});
-						actualScale = maxScale;
-					}
-				}
-				
-				//change steps appearance
-				changeStepsAppearence(actualScale);
-				
-				//pan
-				pan(e);
-			}
+		//****************** EVENT - INTERFACE ****************** ****************** ******************
 		
-		}
-		
-		private function pan(e:TransformGestureEvent):void { 
+		/**
+		 * 
+		 * @param e
+		 * 
+		 */
+		protected function zoom(event:TransformGestureEvent):void {
 			
+			var myProxy:TweenProxy = TweenProxy.create(stepsContainer);	
+			var currentScale:Number;;
 			
-			
-			if (!(e.target is PinListItem) || !(e.target is PinList)) {
-			
-				//scale pins
-				if (actualScale != 1) {
+			switch (event.phase) {
+				
+				case "begin":
+					myProxy.registration = new Point(event.stageX, event.stageY);
+					currentScale = myProxy.scale;
+					break;
+				
+				case "update":
+					myProxy.scale *= event.scaleX;
+					currentScale = myProxy.scale;
 					scalePins();
-				}
-					
-				if (stepsSuperContainer.scaleX > minScale) {
+					break;
 				
-					if (stepsSuperContainer.x - (stepsSuperContainer.width/2) > 0) {
-						
-						stepsSuperContainer.x = stepsSuperContainer.width/2 ;
-						
-					} else if (stepsSuperContainer.x + (stepsSuperContainer.width/2) < 500) {
-						
-						stepsSuperContainer.x = (-stepsSuperContainer.width/2) + 500;
-						
-					} else {
-						
-						if (DeviceInfo.os() != "Mac") {
-							stepsSuperContainer.x += 2 * e.offsetX;
-						} else {
-							stepsSuperContainer.x -= 2 * e.offsetX;
-						}
-						
+				case "end":
+					
+					currentScale = myProxy.scale;
+					
+					//prevent smaller then scale min scale
+					if (myProxy.scaleX < minScale) {
+						TweenMax.to(myProxy, 1, {scaleX:minScale, scaleY:minScale, onUpdate:scalePins});
+						TweenMax.to(stepsContainer, 1, {x:0, y:0});
+						currentScale = minScale;
 					}
 					
-					if (stepsSuperContainer.y - (stepsSuperContainer.height/2) > 0) {
-						
-						stepsSuperContainer.y = stepsSuperContainer.height/2 ;
-						
-					} else if (stepsSuperContainer.y + (stepsSuperContainer.height/2) < 640) {
-						
-						stepsSuperContainer.y = (-stepsSuperContainer.height/2) + 640 ;
-						
-					} else {
-						
-						if (DeviceInfo.os() != "Mac") {
-							stepsSuperContainer.y += 2 * e.offsetY;
-						} else {
-							stepsSuperContainer.y -= 2 * e.offsetY;
-						}
-						
+					//prevent bigger then scale max scale
+					if (myProxy.scaleX > maxScale) {
+						TweenMax.to(myProxy, 1, {scaleX:maxScale, scaleY:maxScale, onUpdate:scalePins});
+						currentScale = maxScale;
 					}
-				
-				}
+					
+					break;
 			}
 			
+			//Step semantic zoom 
+			changeStepsAppearence(currentScale);
 		}
 		
-		private function scalePins():void {
-			for each(pinView in pinCollection) {
-				/*
-				var pLocal:Point = new Point(pinView.x,pinView.y)
-				var pGlobal:Point = stepsSuperContainer.localToGlobal(pLocal);
+		
+		/**
+		 * 
+		 * 
+		 */
+		private function scalePins(event:ScrollEvent = null):void {
+			
+			//trace (event.type, event.phase)
+			//trace (event.speedX, event.speedY)
+			
+			//for each pin
+			for each(var pinView:PinView in pinCollection) {
 				
-				pinView.x = pGlobal.x - stepsSuperContainer.width/2;
-				pinView.y = pGlobal.y - stepsSuperContainer.height/2;
+				//------Get pin position
+				var sp:StepView = this.getStepByAcronym(pinView.currentStep);
+				var stepBounds:Rectangle = sp.getPositionForPin();
 				
-				trace (pLocal,pGlobal)
-				*/
-				
-				
-				//------Pin position and step count box
-				for each(var item:StepView in stepCollection) {
-					if (item.acronym.toLowerCase() == pinView.actualStep) {
-						var info:Object = item.getPositionForPin();
-						
-						if (DeviceInfo.os() != "Mac") { 
-							info.width = info.width * 2;
-							info.height = info.height * 2;
-						}
-						
-						var ration:Object = pinView.ratioPos;
-						var xR:Number = info.x + pinView.width/2 + (ration.w * (info.width - pinView.width));
-						var yR:Number = info.y + pinView.height/2 + (ration.h * (info.height - pinView.height));
-						
-						var pLocal:Point = new Point(xR,yR)
-						var pGlobal:Point = stepsSuperContainer.localToGlobal(pLocal);
-						
-						pinView.x = pGlobal.x - (stepsSuperContainer.width/2);
-						pinView.y = pGlobal.y - (stepsSuperContainer.height/2);
-						
-						break;
-					}
+				//iphone
+				if (DeviceInfo.os() != "Mac") { 
+					stepBounds.width = stepBounds.width * 2;
+					stepBounds.height = stepBounds.height * 2;
 				}
+				
+				//calculate relative position
+				var pinPosRatio:Object = pinView.ratioPos;
+				var xR:Number = stepBounds.x + pinView.width/2 + (pinPosRatio.w * (stepBounds.width - pinView.width));
+				var yR:Number = stepBounds.y + pinView.height/2 + (pinPosRatio.h * (stepBounds.height - pinView.height));
+				//trace (pinPosRatio.w)
+				//transform from local to global
+				var pLocal:Point = new Point(xR,yR)
+				var pGlobal:Point = stepsContainer.localToGlobal(pLocal);
+				
+				//new position
+				pinView.x = pGlobal.x
+				pinView.y = pGlobal.y
 				
 			}	
 			
 		}
 	
+		/**
+		 * 
+		 * @param scale
+		 * 
+		 */
 		private function changeStepsAppearence(scale:Number):void {
-			
-			for each(stepView in stepCollection) {
-				stepView.changeView(scale);
+			for each(var stepView:StepView in stepCollection) {
+				stepView.semanticZoom(scale);
 			}
+		}
+		
+		
+		//****************** GETTERS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getStepById(id:int):StepView {
+			for each(var stepView:StepView in stepCollection) {
+				if (stepView.id == id) {
+					return stepView;
+				}
+			}
+			return null;
+		}
+		
+		/**
+		 * 
+		 * @param value
+		 * @return 
+		 * 
+		 */
+		public function getStepByAcronym(value:String):StepView {
+			for each(var stepView:StepView in stepCollection) {
+				if (stepView.acronym.toLowerCase() == value.toLowerCase()) {
+					return stepView;
+				}
+			}
+			return null;
+		}
+		
+		/**
+		 * 
+		 * @param id
+		 * @return 
+		 * 
+		 */
+		public function getPinById(id:int):PinView {
+			for each(var pinView:PinView in pinCollection) {
+				if (pinView.id == id) {
+					return pinView;
+				}
+			}
+			return null;
 		}
 	
 	}

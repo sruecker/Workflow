@@ -20,14 +20,14 @@ package mvc {
 		 *
 		 * @param   list   List of models this controller's view is observing.
 		 */
-		public function AbstractController(list:Array) {
+		public function AbstractController(modelList:Array) {
 			// Set the model.
 			modelArray = new Array();
 			
 			//loop in the list suplied. test fot Obervables. Put on the list.
-			for (var i:int = 0; i<list.length; i++) {
-				if (list[i] is Observable) {
-					setModel(list[i]);
+			for (var i:int = 0; i < modelList.length; i++) {
+				if (modelList[i] is Observable) {
+					setModel(modelList[i]);
 				}
 			}
 		}
