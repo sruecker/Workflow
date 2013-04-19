@@ -19,6 +19,7 @@ package {
 		
 		//pins
 		private static var _pinListWidth			:int;			//Holds Pin List min width
+		private static var _pinTrail					:Boolean		//Turn on and Off pin trail
 		
 		//groups
 		private static var _contractableGroups		:Boolean		//Whether groups can or cannot contracts
@@ -32,6 +33,15 @@ package {
 		 */
 		public function Settings() {
 			
+			//-- Pins
+			if (DeviceInfo.os() == "iPad") {
+				pinListWidth = 250;
+			} else {
+				pinListWidth = 125;
+			}
+			_pinTrail = true;
+			
+			
 			//--flags
 			_statusFlags = new Array();
 			_statusFlags[0] = new StatusFlag("Start",0xFFFFFF);
@@ -40,21 +50,12 @@ package {
 			_statusFlags[3] = new StatusFlag("Incomplete",0xD7352D);
 			_statusFlags[4] = new StatusFlag("Complete",0x8A964A);
 			
-			//-- Pins
-			
-			//Pin List Width
-			if (DeviceInfo.os() == "iPad") {
-				pinListWidth = 250;
-			} else {
-				pinListWidth = 125;
-			}
-			
 			//--groups
 			_contractableGroups = false;
 			
 		}
 		
-		//****************** GETTERS ****************** ****************** ******************
+		//****************** GETTERS - PIN ****************** ****************** ******************
 		
 		/**
 		 * 
@@ -64,6 +65,18 @@ package {
 		public static function get pinListWidth():int {
 			return _pinListWidth
 		}
+		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
+		public static function get pinTrail():Boolean {
+			return _pinTrail;
+		}
+		
+		
+		//****************** GETTERS - FLAG ****************** ****************** ******************
 
 		/**
 		 * 
@@ -91,6 +104,9 @@ package {
 			return null;
 		}
 		
+		
+		//****************** GETTERS - STRUCTURE ****************** ****************** ******************
+		
 		/**
 		 * 
 		 * @return 
@@ -100,7 +116,7 @@ package {
 			return _contractableGroups;
 		}
 		
-		//****************** SETTER ****************** ****************** ******************
+		//****************** SETTERS - PIN ****************** ****************** ******************
 		
 		/**
 		 *  
@@ -110,6 +126,16 @@ package {
 		public static function set pinListWidth(value:int):void {
 			_pinListWidth = value;
 		}
+
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
+		public static function set pinTrail(value:Boolean):void {
+			_pinTrail = value;
+		}
+
 		
 	}
 }

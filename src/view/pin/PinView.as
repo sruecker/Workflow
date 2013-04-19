@@ -50,6 +50,8 @@ package view.pin {
 		protected var clickCount				:int = 0;						//Count click number [0 - stop drag // 1 - single click // 2 -double click]
 		protected var timer						:Timer;							//Timer between single and double click
 		
+		protected var pinTrail					:PinTrail						//trail dureing movement
+		
 		//****************** Constructor ****************** ******************  ****************** 
 		
 		public function PinView(c:IController, id:int) {
@@ -61,6 +63,9 @@ package view.pin {
 			
 			currentFlag = Settings.getFlagByName("start");	//default
 			timer = new Timer(400,1);	
+			
+			//trails
+			if (Settings.pinTrail) pinTrail = new PinTrail(this);
 		}
 		
 		
@@ -153,12 +158,16 @@ package view.pin {
 		 */
 		protected function pinStartDrag(e:MouseEvent):void {
 			
+			
 			//save position
 			_originalPosition = {x:this.x, y:this.y};
 			clickCount = 0;
 			
 			//dragging
 			this.startDrag();
+			
+			//Start pinTrail
+			if (!pinTrail) pinTrail.start();;
 			
 			//listeners
 			this.removeEventListener(MouseEvent.MOUSE_MOVE, pinStartDrag);
@@ -189,6 +198,9 @@ package view.pin {
 		protected function pinEndDrag(e:MouseEvent):void {
 			//stop draggin
 			this.stopDrag();
+			
+			//stop pinTrail
+			if (!pinTrail) pinTrail.stop();
 			
 			//listeners
 			this.removeEventListener(MouseEvent.MOUSE_MOVE, pinMoving);
