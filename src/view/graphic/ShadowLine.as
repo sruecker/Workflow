@@ -1,35 +1,41 @@
-package view.graphic {
+package view.graphic  {
 	
-	//imports
+	//import
+	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.geom.Matrix;
 	
 	/**
 	 * 
 	 * @author lucaju
 	 * 
 	 */
-	public class ShadowLine extends Sprite{
+	public class ShadowLine extends Sprite {
+
+		//****************** Constructor ****************** ****************** ****************** 
 		
-		//****************** Constructor ****************** ****************** ******************
-		
-		/**
-		 * 
-		 * @param w
-		 * 
-		 */
-		public function ShadowLine(w:uint) {
-			var shadow:Sprite = new Sprite();
+		public function ShadowLine(range:Number, orientation:String = "horizontal", rotation:int = 270) {
 			
-			shadow.graphics.beginGradientFill("linear",[0x000000,0xFFFFFF],[1,0],[0,255]);
-			shadow.graphics.drawRect(0,0,255,w);
+			//matrix - rotation
+			var matrix:Matrix = new Matrix();
+			matrix.createGradientBox(5, 5, (Math.PI/180)*rotation, 0, 0);
+			
+			//GRadient
+			var shadow:Shape = new Shape();
+			shadow.graphics.beginGradientFill("linear",[0x000000,0x000000],[0,.9],[0,255],matrix);
+			
+			//orientation
+			if (orientation == "horizontal") {
+				shadow.graphics.drawRect(0,0,range,5);
+			} else {
+				shadow.graphics.drawRect(0,0,5,range);
+			}
+			
+			//finals
 			shadow.graphics.endFill();
-			shadow.alpha = .8;
-			shadow.width = 20;
-			//shadow.x = -shadow.height;
-			shadow.rotation = -90;
+			shadow.blendMode = "multiply";
+			shadow.alpha = .5;
 			addChild(shadow);
-			
-			this.blendMode = "multiply";
 			
 		}
 	}
