@@ -4,6 +4,7 @@ package view.structure {
 	import com.greensock.TweenMax;
 	
 	import flash.display.Shape;
+	import flash.display.Sprite;
 	import flash.filters.BitmapFilter;
 	import flash.filters.BitmapFilterQuality;
 	import flash.filters.GlowFilter;
@@ -16,10 +17,10 @@ package view.structure {
 	import mvc.AbstractView;
 	import mvc.IController;
 	
+	import view.graphic.ShadowLine;
 	import view.graphic.AbstractShape;
 	import view.graphic.Circle;
 	import view.graphic.Rect;
-	import view.graphic.ShadowLine;
 	
 	/**
 	 * 
@@ -40,7 +41,8 @@ package view.structure {
 		protected var viewType					:String = "normal";
 		
 		protected var activeArea				:AbstractShape;				//active Area
-		protected var titleArea					:AbstractShape;				//Title Area
+		protected var titleArea					:*;				//Title Area
+		protected var shadow:ShadowLine;
 		
 		protected var counterBox				:CounterBox					//display number of steps
 		protected var pinCount					:int = 0;					//pin count
@@ -90,7 +92,7 @@ package view.structure {
 			titleAreaColor = 0x666666;
 			
 			// --- Creat UI	
-			var shadow:ShadowLine;
+			
 			
 			if (id != 10) {
 				//activeArea
@@ -99,17 +101,17 @@ package view.structure {
 				activeArea.drawShape()
 				this.addChild(activeArea);
 				
-				//shadow separation
-				shadow = new ShadowLine(80);
-				shadow.y = activeArea.height;
-				this.addChild(shadow);
-				
 				//title Area
 				titleArea = new Rect(activeArea.width,20);
 				titleArea.color = titleAreaColor;
 				titleArea.drawShape()
 				titleArea.y = activeArea.height;
 				this.addChild(titleArea);
+				
+				//shadow separation
+				shadow = new ShadowLine(80,"horizontal",90);
+				shadow.y = titleArea.y - shadow.height;
+				this.addChild(shadow);
 				
 				//text
 				titleTF = new TextField();
@@ -133,73 +135,47 @@ package view.structure {
 				
 				//activeArea
 				activeArea = new Circle(70);
-				activeArea.x = 35;
-				activeArea.y = 50;
+				//activeArea.x = 35;
+				//activeArea.y = 50;
 				activeArea.color = activeAreaColor;
 				activeArea.drawShape()
 				this.addChild(activeArea);
 				
-				//arc
-				var centerX:Number = activeArea.x;
-				var centerY:Number = activeArea.y;
-				var radius:Number = 70;
-				var startAngle:Number = 130/360;
-				var arcAngle:Number = 100/360;
-				var steps:Number = 20;
+				//arc for circle radius 70
+				titleArea = new Sprite();				
+				titleArea.graphics.beginFill(titleAreaColor,1);
+				titleArea.graphics.moveTo(0,0);
+				titleArea.graphics.cubicCurveTo(12,14,31,23,52,23);
+				titleArea.graphics.cubicCurveTo(72,23,91,14,104,0);
+				titleArea.graphics.lineTo(0,0);
+				titleArea.graphics.endFill();
+
+				this.addChild(titleArea);
 				
-				var arc:Shape = new Shape();
-				
-				arc.graphics.lineStyle(2, 0x6D6E70);
-				arc.graphics.beginFill(titleAreaColor);
-				//arc.graphics.beginGradientFill("radial",[0xCCCCCC,0xFFFFFF],[1,1],[100,150]);
-				
-				// Rotate the point of 0 rotation 1/4 turn counter-clockwise.
-				startAngle -= .25;
-				
-				var twoPI:Number = 2 * Math.PI;
-				var angleStep:Number = arcAngle/steps;
-				var xx:Number = centerX + Math.cos(startAngle * twoPI) * radius;
-				var yy:Number = centerY + Math.sin(startAngle * twoPI) * radius;
-				var angle:Number = 0;
-				
-				
-			//	arc.graphics.moveTo(radius, 0);
-				arc.graphics.moveTo(xx, yy);
-				for(var i:Number=1; i<=steps; i++){
-					
-					angle = startAngle + i * angleStep;
-					xx = centerX + Math.cos(angle * twoPI) * radius;
-					yy = centerY + Math.sin(angle * twoPI) * radius;
-					arc.graphics.lineTo(xx, yy);
-					
-				}
-				//arc.graphics.lineTo(0, 0);
-				arc.graphics.endFill();
-				
-				this.addChild(arc)
-				
-				//shadow separation
-				shadow = new ShadowLine(110);
-				shadow.x = -20;
-				shadow.y = activeArea.height - arc.height - 19;
-				this.addChild(shadow);
+				titleArea.x = -titleArea.width/2;
+				titleArea.y = (activeArea.height/2) - titleArea.height;
 				
 				//text
 				titleTF = new TextField();
 				titleTF.width = 65;
-				titleTF.autoSize = "left";
+				titleTF.autoSize = "center";
 				titleTF.selectable = false;
 				titleTF.defaultTextFormat = titleFinalStyle;
 				titleTF.text = acronym;
 				
-				titleTF.x = 8;
-				titleTF.y = 98;
+				titleTF.x = titleArea.x + (titleArea.width/2) - (titleTF.width/2);
+				titleTF.y = titleArea.y + 2;
 				this.addChild(titleTF);
+				
+				//shadow separation
+				shadow = new ShadowLine(106,"horizontal",90);
+				shadow.x = titleArea.x-1;
+				shadow.y = titleArea.y -  shadow.height;
+				this.addChild(shadow);
 				
 				//count box
 				counterBox = new CounterBox();
-				counterBox.x = 35;
-				counterBox.y = -22;
+				counterBox.y = -activeArea.height/2;
 				addChild(counterBox);
 			}
 			
@@ -359,8 +335,7 @@ package view.structure {
 		 * 
 		 */
 		public function updateCounter(value:int):void {
-			pinCount = value;
-			counterBox.count = pinCount;
+			if (counterBox) counterBox.count = value;
 		}
 		
 		/**
@@ -375,10 +350,14 @@ package view.structure {
 				usableScale = 1;
 			}
 			
+			//shadow
+			shadow.scaleY = (1/usableScale)
+			shadow.y = titleArea.y - shadow.height;
+			
 			//title bar
-			if (titleArea) {
+			if (this.id != 10) {
 				titleArea.scaleY = (1/usableScale);
-				
+
 				//title
 				titleTF.scaleX = titleTF.scaleY = (1/usableScale);
 				titleTF.x = titleArea.width / 20;
@@ -389,13 +368,17 @@ package view.structure {
 				viewType = "zoom";
 				
 				titleTF.text = title;
-				titleTF.width = 200;
+				if (this.id != 10) {
+					titleTF.width = 200;
+				}
 				
 			} else if (currentScale < 3 && viewType == "zoom") {
 				viewType = "normal";
 				
 				titleTF.text = acronym;
-				titleTF.width = 65;
+				if (this.id != 10) {
+					titleTF.width = 65;
+				}
 			}
 			
 		}

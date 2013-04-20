@@ -176,10 +176,8 @@ package view.tooltip {
 		 * 
 		 */
 		public static function sendToFront(value:int):void {
-			
 			var toolTip:ToolTip = getToolTipBySourceId(value);
 			target.swapChildrenAt(target.getChildIndex(toolTip),target.numChildren-1);
-			
 		}
 		
 		/**

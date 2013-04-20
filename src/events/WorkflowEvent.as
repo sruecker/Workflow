@@ -8,7 +8,7 @@ package events{
 	 * @author lucaju
 	 * 
 	 */
-	public class OrlandoEvent extends Event {
+	public class WorkflowEvent extends Event {
 		
 		//****************** Properties ****************** ******************  ******************
 		
@@ -17,7 +17,7 @@ package events{
 		public static const UPDATE_PIN				:String = "uptade_pin";
 		public static const ACTIVATE_PIN			:String = "activate_pin";
 		
-		public static const SELECT_PIN				:String = "select_pin";
+		public static const SELECT					:String = "select";
 		public static const DRAG_PIN				:String = "drag_pin";
 		
 		public var phase							:String;
@@ -35,7 +35,7 @@ package events{
 		 * @param cancelable
 		 * 
 		 */
-		public function OrlandoEvent(type:String,
+		public function WorkflowEvent(type:String,
 								  data:Object = null,
 								  phase:String = "",
 								  bubbles:Boolean = true,
@@ -55,7 +55,7 @@ package events{
 		 * 
 		 */
 		public override function clone():Event {
-			return new OrlandoEvent(type, data, phase, bubbles, cancelable);
+			return new WorkflowEvent(type, data, phase, bubbles, cancelable);
 		}
 		
 		/**

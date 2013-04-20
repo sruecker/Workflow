@@ -8,7 +8,7 @@ package view.pin {
 	import flash.filters.BitmapFilterQuality;
 	import flash.filters.GlowFilter;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	
 	/**
@@ -43,7 +43,7 @@ package view.pin {
 		 * 
 		 */
 		public function start():void {
-			target.addEventListener(OrlandoEvent.DRAG_PIN, draw);
+			target.addEventListener(WorkflowEvent.DRAG_PIN, draw);
 			
 			canvas = new Sprite();
 			canvas.mouseEnabled = false;
@@ -66,7 +66,7 @@ package view.pin {
 		 */
 		public function stop():void {
 			TweenMax.to(canvas,2,{alpha:0, y:canvas.y + 10, blurFilter:{blurX:50, bluxY:50}, onComplete:kill, onCompleteParams:[canvas]});
-			target.removeEventListener(OrlandoEvent.DRAG_PIN, draw);
+			target.removeEventListener(WorkflowEvent.DRAG_PIN, draw);
 			canvas = null;
 		}
 		
@@ -78,7 +78,7 @@ package view.pin {
 		 * @param event
 		 * 
 		 */
-		protected function draw(event:OrlandoEvent):void {
+		protected function draw(event:WorkflowEvent):void {
 			canvas.graphics.lineTo(event.target.x, event.target.y);
 		}
 		

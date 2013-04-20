@@ -1,7 +1,7 @@
 package model {
 	
 	//imports
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import mvc.Observable;
 	
@@ -248,7 +248,7 @@ package model {
 			var data:Object = {};
 			data.step = step;
 			
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_STEP, data));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.UPDATE_STEP, data));
 			
 		}
 		
@@ -267,7 +267,7 @@ package model {
 			var data:Object = {};
 			data.step = step;
 			
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_STEP, data));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.UPDATE_STEP, data));
 		}
 		
 	}

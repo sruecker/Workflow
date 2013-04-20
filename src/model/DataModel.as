@@ -5,7 +5,7 @@ package model {
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import mvc.Observable;
 	
@@ -332,7 +332,7 @@ package model {
 			var data:Object = {};
 			data.document = doc;
 			
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_PIN, data));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.UPDATE_PIN, data));
 			
 		}
 		
@@ -352,7 +352,7 @@ package model {
 			var data:Object = {};
 			data.pinId = id;
 			
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.UPDATE_PIN, data));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.UPDATE_PIN, data));
 		}
 		
 	}

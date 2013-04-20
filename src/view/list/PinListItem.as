@@ -10,7 +10,7 @@ package view.list {
 	import flash.text.TextFormat;
 	import flash.utils.Timer;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import model.StatusFlag;
 	
@@ -352,7 +352,7 @@ package view.list {
 				data.id = this.id;
 				data.status = this.status;
 				
-				this.dispatchEvent(new OrlandoEvent(OrlandoEvent.SELECT_PIN, data));
+				this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data));
 			}
 		}
 		
@@ -375,7 +375,7 @@ package view.list {
 			data.id = this.id;
 			data.status = this.status;
 			
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.SELECT_PIN, data));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data));
 		}
 
 	}

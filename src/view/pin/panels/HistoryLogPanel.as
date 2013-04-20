@@ -159,7 +159,6 @@ package view.pin.panels {
 			
 			//shadow line
 			var lineStart:ShadowLine = new ShadowLine(hMax);
-			lineStart.scaleY = -1;
 			lineStart.y = scrolledArea.y
 			addChild(lineStart);
 			

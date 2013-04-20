@@ -10,7 +10,7 @@ package view.pin {
 	
 	import controller.WorkflowController;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import view.pin.panels.FlagPanel;
 	import view.pin.panels.HistoryLogPanel;
@@ -325,7 +325,7 @@ package view.pin {
 			data.id = target.id;
 			data.status = target.status;
 			
-			target.dispatchEvent(new OrlandoEvent(OrlandoEvent.SELECT_PIN, data, target.status));
+			target.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data, target.status));
 			
 		}
 

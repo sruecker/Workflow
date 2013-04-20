@@ -9,7 +9,7 @@ package view {
 	
 	import controller.WorkflowController;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import model.DocumentModel;
 	
@@ -62,7 +62,7 @@ package view {
 			
 			//Listeners
 			this.addEventListener(Event.CLEAR, toolTipCleared);
-			this.addEventListener(OrlandoEvent.SELECT_PIN, clickPin);
+			this.addEventListener(WorkflowEvent.SELECT, clickPin);
 		}
 		
 		
@@ -217,7 +217,7 @@ package view {
 		 * @param event
 		 * 
 		 */
-		protected function clickPin(event:OrlandoEvent):void {
+		protected function clickPin(event:WorkflowEvent):void {
 			selectPin(event.target as PinView)
 		}
 	

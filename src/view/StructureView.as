@@ -7,10 +7,11 @@ package view {
 	import flash.display.Sprite;
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import controller.WorkflowController;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import model.GroupModel;
 	import model.StepModel;
@@ -33,6 +34,8 @@ package view {
 	public class StructureView extends AbstractView {
 		
 		//****************** Properties ****************** ****************** ******************
+		
+		protected var _activeArea						:Rectangle;
 		
 		protected var stepCollection				:Array;				//Collection of StepView
 		protected var groupCollection				:Array;				//Collection of GroupsView
@@ -83,14 +86,16 @@ package view {
 		 * 
 		 * 
 		 */
-		public function init():void {
+		public function init(actArea:Rectangle):void {
 
-			yPos = this.stage.stageHeight/2;
+			activeArea = actArea;
+			
+			yPos = activeArea.height/2;
 			
 			//Containers
 			stepContainer = new Sprite();//*
 			stepContainer.graphics.beginFill(0xFFFFFF,0);
-			stepContainer.graphics.drawRect(0,0,stage.stageWidth, stage.stageHeight);
+			stepContainer.graphics.drawRect(activeArea.x,activeArea.y,activeArea.width, activeArea.height);
 			stepContainer.graphics.endFill();
 			this.addChild(stepContainer);  //*
 			
@@ -117,7 +122,7 @@ package view {
 			scroll.init();
 			
 			//listenter
-			WorkflowController(this.getController()).getModel("structure").addEventListener(OrlandoEvent.UPDATE_STEP, updateStep);
+			WorkflowController(this.getController()).getModel("structure").addEventListener(WorkflowEvent.UPDATE_STEP, updateStep);
 			this.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
 		}
 		
@@ -156,19 +161,24 @@ package view {
 				
 				//general
 				if (stepView.level >= 0) {
-					stepView.y = yPos;
 					stepView.x = xPos + (stepView.level * slot);
-					
+					stepView.y = yPos;
+						
 					//enhance
 					if (stepView.level == 6) {
-						stepView.y = yPos + slot;
 						stepView.x = xPos + ((stepView.level-1) * slot);
+						stepView.y = yPos + slot;
+					}
+					
+					if (stepView.id == 10) {
+						stepView.x += stepView.width/4;
+						stepView.y += stepView.height/4;
 					}
 					
 					//out of sequence
 				} else {
-					stepView.y = 20;
-					stepView.x = this.stage.stageWidth - ((stepView.level*-1) * slot);	
+					stepView.x = this.stage.stageWidth - ((stepView.level*-1) * slot);
+					stepView.y = 60;
 				}
 				
 			}
@@ -299,6 +309,27 @@ package view {
 		public function getStepContainer():Sprite {
 			return stepContainer;
 		}
+		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
+		public function get activeArea():Rectangle {
+			return _activeArea;
+		}
+		
+		
+		//****************** PUBLIC METHODS - GETTERS ****************** ****************** ******************
+		
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
+		public function set activeArea(value:Rectangle):void {
+			_activeArea = value;
+		}
 	
 	
 		//****************** EVENTS - ACTIONS ****************** ****************** ******************
@@ -308,7 +339,7 @@ package view {
 		 * @param e
 		 * 
 		 */
-		protected function updateStep(e:OrlandoEvent):void {
+		protected function updateStep(e:WorkflowEvent):void {
 			var step:StepModel = StepModel(e.data.step);
 			var stepView:StepView = getStepById(step.id);
 			
@@ -384,6 +415,7 @@ package view {
 				stepView.semanticZoom(scale);
 			}
 		}	
+
 		
 	}
 }

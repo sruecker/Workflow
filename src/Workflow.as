@@ -31,7 +31,7 @@ package {
 		
 		protected var settings					:Settings;					//Settings
 		
-		protected var logo						:Sprite;
+		
 
 		
 		//****************** Constructor ****************** ****************** ******************
@@ -53,17 +53,7 @@ package {
 			background.alpha = .3;
 			addChild(background);
 			
-			//logo
-			logo = new Sprite();
-			this.addChild(logo);
 			
-			var loaderLogo:Loader = new Loader();
-			loaderLogo.contentLoaderInfo.addEventListener(Event.COMPLETE, loadLogo)
-			loaderLogo.load( new URLRequest("images/logo.png"));
-			logo.addChild(loaderLogo);
-			logo.blendMode = "multiply";
-			logo.alpha = .9;
-			logo.cacheAsBitmap = true;
 			
 			//Start models
 			structureModel = new StructureModel();
@@ -78,25 +68,6 @@ package {
 			workflowView = new WorkflowView(workflowController);
 			addChild(workflowView);
 			workflowController.setView(workflowView);
-		}
-		
-		
-		//****************** Protected Methods ****************** ****************** ******************
-		
-		/**
-		 * 
-		 * @param event
-		 * 
-		 */
-		protected function loadLogo(event:Event):void {
-			var img:Bitmap = event.currentTarget.content;
-			img.x = -img.width/2;
-			img.y = -img.height/2;
-			
-			logo.x = 195;
-			logo.y = 70;
-			
-			TweenMax.from(logo,3,{alpha:0, x:-img.width/2, rotation:-400, delay:1, ease: Back.easeOut});
 		}
 		
 		

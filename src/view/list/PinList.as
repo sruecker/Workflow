@@ -21,16 +21,16 @@ package view.list {
 	public class PinList extends AbstractView {
 		
 		//****************** Proprieties ****************** ****************** ******************
-		private var _maxHeight					:Number							//Maximum Height
-		private var _minWidth					:Number = 125;					//Minimun Width (depends on the OS – DPI)
+		protected var _maxHeight					:Number							//Maximum Height
+		protected var _minWidth						:Number = 125;					//Minimun Width (depends on the OS – DPI)
 		
-		private var itemCollection				:Array;							//Colletion of Items
+		protected var itemCollection				:Array;							//Colletion of Items
 							
-		private var container					:Sprite;						//Container
-		private var containerMask				:Sprite;						//Mask
+		protected var container						:Sprite;						//Container
+		protected var containerMask					:Sprite;						//Mask
 		
-		private var itemList					:PinListItem;
-		private var scroll						:Scroll;
+		protected var itemList						:PinListItem;
+		protected var scroll						:Scroll;
 		
 		
 		//****************** Constructor ****************** ****************** ******************
@@ -51,11 +51,11 @@ package view.list {
 		 * @param data
 		 * 
 		 */
-		public function initialize(data:Array):void {
+		public function initialize(data:Array, maxH:Number):void {
 			
 			_minWidth = Settings.pinListWidth;
 			
-			_maxHeight = stage.stageHeight;
+			_maxHeight = maxH;
 			
 			//background
 			var bg:Sprite = new Sprite();
@@ -69,10 +69,8 @@ package view.list {
 			this.addChild(container)
 			
 			//shadow
-			var shadow:ShadowLine = new ShadowLine(_maxHeight);
-			shadow.rotation = -90;
-			shadow.x = _minWidth;
-			shadow.y = _maxHeight;
+			var shadow:ShadowLine = new ShadowLine(_maxHeight,"vertical",0);
+			shadow.x = bg.width - shadow.width;
 			this.addChild(shadow);
 			
 			//loop
@@ -174,5 +172,24 @@ package view.list {
 			}
 			
 		}
+
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
+		public function get maxHeight():Number {
+			return _maxHeight;
+		}
+
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
+		public function set maxHeight(value:Number):void {
+			_maxHeight = value;
+		}
+
 	}
 }

@@ -11,7 +11,7 @@ package view.pin {
 	import flash.filters.GlowFilter;
 	import flash.utils.Timer;
 	
-	import events.OrlandoEvent;
+	import events.WorkflowEvent;
 	
 	import model.StatusFlag;
 	
@@ -177,7 +177,7 @@ package view.pin {
 			this.addEventListener(MouseEvent.MOUSE_UP, pinEndDrag);
 			
 			//dispatch event
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.DRAG_PIN, null, "start"));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.DRAG_PIN, null, "start"));
 		}
 		
 		/**
@@ -187,7 +187,7 @@ package view.pin {
 		 */
 		protected function pinMoving(event:MouseEvent):void {
 			//dispatch event
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.DRAG_PIN, null, "update"));	
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.DRAG_PIN, null, "update"));	
 		}
 		
 		/**
@@ -207,7 +207,7 @@ package view.pin {
 			this.removeEventListener(MouseEvent.MOUSE_UP, pinEndDrag);
 			
 			//dispatch event
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.DRAG_PIN, null, "end"));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.DRAG_PIN, null, "end"));
 		}
 		
 		/**
@@ -258,7 +258,7 @@ package view.pin {
 			data.id = this.id;
 			data.status = this.status;
 				
-			this.dispatchEvent(new OrlandoEvent(OrlandoEvent.SELECT_PIN, data, this.status));
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data, this.status));
 		}
 		
 		
