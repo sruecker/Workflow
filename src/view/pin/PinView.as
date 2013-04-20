@@ -39,7 +39,7 @@ package view.pin {
 		protected var _ratioPos					:Object; 						//**
 		
 		internal var shape						:Sprite;						//Pin Shape Object
-		internal var shapeSize					:int = 6;						//pinsize
+		protected var _shapeSize				:int = 6;						//pinsize
 		
 		internal var star						:Star;							//star tag
 		protected var _tagged					:Boolean = false;				//Pin Tagged
@@ -344,6 +344,15 @@ package view.pin {
 		 * @return 
 		 * 
 		 */
+		public function get shapeSize():int {
+			return _shapeSize;
+		}
+		
+		/**
+		 * 
+		 * @return 
+		 * 
+		 */
 		public function get originalPosition():Object {
 			return _originalPosition;
 		}
@@ -410,6 +419,15 @@ package view.pin {
 		 * @param value
 		 * 
 		 */
+		public function set shapeSize(value:int):void {
+			_shapeSize = value;
+		}
+		
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
 		public function set ratioPos(value:Object):void {
 			if(!_ratioPos) {
 				_ratioPos = new Object
@@ -424,7 +442,7 @@ package view.pin {
 		 */
 		public function set currentStep(value:String):void {
 			_currentStep = value;
-			updatePosition();
+			this.updatePosition(this.x,this.y);
 		}
 		
 		/**
@@ -488,8 +506,8 @@ package view.pin {
 		 * 
 		 * 
 		 */
-		public function updatePosition():void {
-			_originalPosition = {x:this.x, y:this.y};
+		public function updatePosition(newX:Number, newY:Number):void {
+			_originalPosition = {x:newX, y:newY};
 		}
 		
 	}

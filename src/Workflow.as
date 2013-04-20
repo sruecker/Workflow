@@ -17,7 +17,7 @@ package {
 	import model.DataModel;
 	import model.StructureModel;
 	
-	import view.OrlandoView;
+	import view.WorkflowView;
 	
 	[SWF(width="1260", height="700", backgroundColor="#ffffff", frameRate="60")]
 	public class Workflow extends Sprite {
@@ -27,7 +27,7 @@ package {
 		protected var structureModel			:StructureModel;			//Structure
 		protected var dataModel					:DataModel;					//Documents Data
 		protected var workflowController		:WorkflowController			//Controller
-		protected var orlandoView				:OrlandoView;				//Main View;
+		protected var workflowView				:WorkflowView;				//Main View;
 		
 		protected var settings					:Settings;					//Settings
 		
@@ -75,9 +75,9 @@ package {
 			workflowController = new WorkflowController([structureModel,dataModel]);
 			
 			//Starting View
-			orlandoView = new OrlandoView(workflowController);
-			addChild(orlandoView);
-			workflowController.setView(orlandoView);
+			workflowView = new WorkflowView(workflowController);
+			addChild(workflowView);
+			workflowController.setView(workflowView);
 		}
 		
 		
@@ -118,7 +118,7 @@ package {
 		 * 
 		 */
 		protected function _loadWorkFlow(e:Event):void {
-			orlandoView.init();
+			workflowView.init();
 		}
 	}
 }

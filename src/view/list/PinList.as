@@ -161,10 +161,18 @@ package view.list {
 		}
 		
 		public function changePinStatus(id:int, status:String):void {
-			var pin:PinListItem = getItemById(id);
-			pin.changeStatus(status);
+			var item:PinListItem = getItemById(id);
+			item.changeStatus(status);
 		}
 			
 		
+		public function clearSelection():void {
+			for each(var item:PinListItem in itemCollection) {
+				if (item.status == "selected") {
+					item.changeStatus("deselected");
+				}
+			}
+			
+		}
 	}
 }

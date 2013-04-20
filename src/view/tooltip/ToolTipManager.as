@@ -7,7 +7,7 @@ package view.tooltip {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	import view.OrlandoView;
+	import view.StructureView;
 	
 	/**
 	 * 
@@ -35,6 +35,7 @@ package view.tooltip {
 		 * 
 		 */
 		public function ToolTipManager(target_:Sprite) {
+			
 			target = target_;
 		
 			_toolTipBaseColor = 0xFFFFFF;
@@ -42,7 +43,7 @@ package view.tooltip {
 			
 			toolTipCollection = new Array();
 			
-			target.addEventListener(MouseEvent.CLICK, removeAll);
+			target.stage.addEventListener(MouseEvent.CLICK, removeAll);
 		}
 		
 		
@@ -213,7 +214,7 @@ package view.tooltip {
 		 */
 		static public function removeAll(event:MouseEvent):void {
 			
-			if (event.target is OrlandoView) {
+			if (event.target.parent is StructureView) {
 			
 				var animOffset:int;
 				

@@ -1,4 +1,4 @@
-package view.step {
+package view.structure {
 	
 	//imports
 	import com.greensock.TweenMax;
