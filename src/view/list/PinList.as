@@ -12,6 +12,7 @@ package view.list {
 	
 	import view.graphic.ShadowLine;
 	import view.util.scroll.Scroll;
+	import settings.Settings;
 	
 	/**
 	 * 
@@ -53,7 +54,11 @@ package view.list {
 		 */
 		public function initialize(data:Array, maxH:Number):void {
 			
-			_minWidth = Settings.pinListWidth;
+			if (Settings.platformTarget == "mobile") {
+				_minWidth = 250;
+			} else {
+				_minWidth = 125;
+			}
 			
 			_maxHeight = maxH;
 			
@@ -129,6 +134,7 @@ package view.list {
 				
 				//add scroll system
 				scroll = new Scroll();
+				scroll.gestureInput = "gestouch";
 				scroll.target = container;
 				scroll.maskContainer = containerMask;
 				this.addChild(scroll);

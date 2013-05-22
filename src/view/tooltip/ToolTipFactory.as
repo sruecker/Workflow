@@ -1,7 +1,7 @@
 package view.tooltip {
 	
 	//imports
-	import util.DeviceInfo;
+	import settings.Settings;
 	
 	/**
 	 * 
@@ -20,10 +20,11 @@ package view.tooltip {
 			
 			var toolTip:ToolTip = new ToolTip(id);
 			
-			switch (DeviceInfo.os()) {
+			switch (Settings.platformTarget) {
 				
-				case "iPhone":
+				case "mobile":
 					toolTip.fontSize = 24;
+					toolTip.TFWidth = 200;
 					break;
 				
 				default:

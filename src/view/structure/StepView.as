@@ -3,7 +3,6 @@ package view.structure {
 	//imports
 	import com.greensock.TweenMax;
 	
-	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.filters.BitmapFilter;
 	import flash.filters.BitmapFilterQuality;
@@ -17,10 +16,12 @@ package view.structure {
 	import mvc.AbstractView;
 	import mvc.IController;
 	
-	import view.graphic.ShadowLine;
+	import settings.Settings;
+	
 	import view.graphic.AbstractShape;
 	import view.graphic.Circle;
 	import view.graphic.Rect;
+	import view.graphic.ShadowLine;
 	
 	/**
 	 * 
@@ -40,6 +41,7 @@ package view.structure {
 		protected var glowBlur					:uint = 5;
 		protected var viewType					:String = "normal";
 		
+		protected var base						:Sprite;
 		protected var activeArea				:AbstractShape;				//active Area
 		protected var titleArea					:*;				//Title Area
 		protected var shadow:ShadowLine;
@@ -110,7 +112,7 @@ package view.structure {
 				
 				//shadow separation
 				shadow = new ShadowLine(80,"horizontal",90);
-				shadow.y = titleArea.y - shadow.height;
+				shadow.y = titleArea.y - shadow.height + 1;
 				this.addChild(shadow);
 				
 				//text
@@ -129,7 +131,14 @@ package view.structure {
 				
 				//count box
 				counterBox = new CounterBox();
-				addChild(counterBox);
+				this.addChild(counterBox);
+				
+				//base
+				base = new Sprite();
+				base.graphics.lineStyle(1,0x666666,1,true,"none");
+				base.graphics.drawRect(0,0,activeArea.width,activeArea.height + titleArea.height);
+				base.graphics.endFill();
+				this.addChildAt(base,0);
 				
 			} else {
 				
@@ -137,6 +146,8 @@ package view.structure {
 				activeArea = new Circle(70);
 				//activeArea.x = 35;
 				//activeArea.y = 50;
+				activeArea.lineThickness = 1;
+				activeArea.lineColor = 0x666666;
 				activeArea.color = activeAreaColor;
 				activeArea.drawShape()
 				this.addChild(activeArea);
@@ -177,13 +188,16 @@ package view.structure {
 				counterBox = new CounterBox();
 				counterBox.y = -activeArea.height/2;
 				addChild(counterBox);
+				
 			}
 			
 			//fx
+			/*
 			var fxs:Array = new Array();
 			var fxGlow:BitmapFilter = getBitmapFilter(glowBlur, 5);
 			fxs.push(fxGlow);
 			this.filters = fxs;
+			*/
 			
 		}
 		
@@ -308,10 +322,27 @@ package view.structure {
 		 * @param blur
 		 * 
 		 */
-		public function highlight(blur:uint):void {
-			if (blur != glowBlur) {
-				TweenMax.to(this, .8, {glowFilter:{blurX:blur, blurY:blur}});
-				glowBlur = blur;
+		public function highlight(value:Boolean):void {
+			
+			switch (Settings.platformTarget) {
+				case "mobile":
+					if (value) {
+						TweenMax.to(activeArea, .5, {tint:0xFFFFFF});
+					} else {
+						TweenMax.to(activeArea, .5, {removeTint:true});
+					}
+					break;
+				
+				default:
+					if (value) {
+						TweenMax.to(this, .5, {glowFilter:{blurX:15, blurY:15}});
+						glowBlur = 15;
+					} else {
+						TweenMax.to(this, .5, {glowFilter:{blurX:5, blurY:5}});
+						glowBlur = 5;
+					}
+
+				break;
 			}
 		}
 		
@@ -350,19 +381,22 @@ package view.structure {
 				usableScale = 1;
 			}
 			
-			//shadow
-			shadow.scaleY = (1/usableScale)
-			shadow.y = titleArea.y - shadow.height;
-			
 			//title bar
 			if (this.id != 10) {
 				titleArea.scaleY = (1/usableScale);
+				titleArea.y = activeArea.height;
+				
+				base.height = activeArea.height + titleArea.height;
 
 				//title
 				titleTF.scaleX = titleTF.scaleY = (1/usableScale);
 				titleTF.x = titleArea.width / 20;
 				titleTF.y = titleArea.y + (titleArea.height / 20);;
 			}
+			
+			//shadow
+			shadow.scaleY = (1/usableScale)
+			shadow.y = titleArea.y - shadow.height;
 				
 			if (currentScale > 3 && viewType == "normal") {
 				viewType = "zoom";

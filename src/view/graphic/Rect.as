@@ -34,6 +34,11 @@ package view.graphic {
 		 * 
 		 */
 		override public function drawShape():void {
+			//line
+			if (hasLine) {
+				this.graphics.lineStyle(lineThickness,lineColor,1,true);
+			}
+
 			this.graphics.beginFill(color);
 			this.graphics.drawRect(0,0,wDef,hDef);
 			this.graphics.endFill();

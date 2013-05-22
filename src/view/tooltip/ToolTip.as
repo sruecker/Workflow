@@ -39,6 +39,9 @@ package view.tooltip {
 		 */
 		public function ToolTip(id_:int = 0) {
 			_id = id_;
+			
+			style = new TextFormat();
+			textTF = new TextField();
 		}
 			
 		//****************** INITIALIZE ****************** ******************  ****************** 
@@ -57,7 +60,6 @@ package view.tooltip {
 			if (data.id) _sourceId = data.id;
 		
 			//style
-			style = new TextFormat();
 			style.font = "Arial Narrow";
 			style.size = _fontSize;
 			style.bold = true;
@@ -65,7 +67,6 @@ package view.tooltip {
 			style.align = "center";
 			
 			//title
-			textTF = new TextField();
 			textTF.selectable = false;
 			textTF.multiline = true;
 			textTF.mouseWheelEnabled = false;
@@ -95,7 +96,7 @@ package view.tooltip {
 			
 			textTF.x = shapeBox.x + (shapeBox.activeArea.width/2) - (textTF.width/2);
 			textTF.y = shapeBox.y + (shapeBox.activeArea.height/2) - (textTF.height/2);
-
+			
 		}
 		
 		
@@ -195,6 +196,15 @@ package view.tooltip {
 		 */
 		public function set source(value:Sprite):void {
 			_source = value;
+		}
+		
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
+		public function set TFWidth(value:Number):void {
+			textTF.width = value;
 		}
 		
 		//****************** PUBLIC METHODS ****************** ******************  ****************** 

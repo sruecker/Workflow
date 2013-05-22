@@ -6,6 +6,7 @@ package view.list {
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.events.TouchEvent;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.utils.Timer;
@@ -13,6 +14,13 @@ package view.list {
 	import events.WorkflowEvent;
 	
 	import model.StatusFlag;
+	
+	import org.gestouch.events.GestureEvent;
+	import org.gestouch.gestures.SwipeGesture;
+	import org.gestouch.gestures.SwipeGestureDirection;
+	import org.gestouch.gestures.TapGesture;
+	
+	import settings.Settings;
 	
 	/**
 	 * 
@@ -128,10 +136,20 @@ package view.list {
 			this.doubleClickEnabled = true;
 			
 			//listeners
-			this.addEventListener(MouseEvent.CLICK, OnClick);
-			this.addEventListener(MouseEvent.DOUBLE_CLICK, OnDoubleClick);
-		}
-		
+			if (Settings.platformTarget == "mobile") {
+				var tap:TapGesture = new TapGesture(this);
+				tap.addEventListener(GestureEvent.GESTURE_RECOGNIZED, touchEvent);
+				
+				
+				var swipe:SwipeGesture = new SwipeGesture(this);
+				swipe.addEventListener(GestureEvent.GESTURE_RECOGNIZED, swipeEvent);
+				swipe.direction = SwipeGestureDirection.HORIZONTAL;
+				
+			} else {
+				this.addEventListener(MouseEvent.CLICK, OnClick);
+				this.addEventListener(MouseEvent.DOUBLE_CLICK, OnDoubleClick);
+			}
+		}	
 		
 		//****************** GETTERS ****************** ****************** ******************
 		
@@ -377,6 +395,53 @@ package view.list {
 			
 			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data));
 		}
+		
+		protected function touchEvent(event:GestureEvent):void {
+			
+			// 1 CLICK
+			//change status
+			if (status == "deselected") {
+				changeStatus("selected");
+			} else {
+				changeStatus("deselected");
+			}
+			
+			//send event
+			var data:Object = {};
+			data.id = this.id;
+			data.status = this.status;
+			
+			this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data));
+		}
+		
+		protected function swipeEvent(event:GestureEvent):void {
+			var swipeGesture:SwipeGesture = event.target as SwipeGesture;
+			
+			var changed:Boolean = false;
+			
+			if (swipeGesture.offsetX > 0) {
+				if (_status != "edit") {
+					changeStatus("edit");
+					changed = true;
+				}
+				
+			} else {
+				if (_status != "deselected") {
+					changeStatus("deselected");
+					changed = true;
+				}
+			}
+			
+			if (changed) {
+				//send event
+				var data:Object = {};
+				data.id = this.id;
+				data.status = this.status;
+				
+				this.dispatchEvent(new WorkflowEvent(WorkflowEvent.SELECT, data));
+			}
+			
+		}	
 
 	}
 }

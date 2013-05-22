@@ -35,6 +35,7 @@ package view.menu {
 			var posX:Number = 0;
 			
 			if (optionCollection) {
+				
 				for each (var option:Object in optionCollection) {
 					
 					item = ButtonBarFactory.addButtonBar(option.title);
@@ -49,8 +50,8 @@ package view.menu {
 					item = null;
 				
 				}
+				
 			}
-			
 			
 		}
 		

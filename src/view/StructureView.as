@@ -6,6 +6,7 @@ package view {
 	
 	import flash.display.Sprite;
 	import flash.events.TransformGestureEvent;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -18,6 +19,11 @@ package view {
 	
 	import mvc.AbstractView;
 	import mvc.IController;
+	
+	import org.gestouch.events.GestureEvent;
+	import org.gestouch.gestures.ZoomGesture;
+	
+	import settings.Settings;
 	
 	import util.DeviceInfo;
 	
@@ -71,7 +77,8 @@ package view {
 			groupCollection = new Array();
 			
 			//Space and position if iPhone
-			if (DeviceInfo.os() != "Mac") {
+			
+			if (Settings.platformTarget == "mobile") {
 				slot = 300;
 				xPos = 300;
 				yPos = 650;
@@ -90,7 +97,7 @@ package view {
 
 			activeArea = actArea;
 			
-			yPos = activeArea.height/2;
+			yPos = (activeArea.height/2);
 			
 			//Containers
 			stepContainer = new Sprite();//*
@@ -114,6 +121,7 @@ package view {
 			
 			//add scroll system
 			scroll = new Scroll();
+			scroll.gestureInput = "gestouch";
 			scroll.direction = "both";
 			scroll.target = stepContainer;
 			scroll.maskContainer = containerMask;
@@ -123,7 +131,15 @@ package view {
 			
 			//listenter
 			WorkflowController(this.getController()).getModel("structure").addEventListener(WorkflowEvent.UPDATE_STEP, updateStep);
-			this.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
+			
+			if (Settings.platformTarget != "mobile") {
+				this.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
+			}
+			
+			//var zoomGesture:ZoomGesture = new ZoomGesture(this);
+			//zoomGesture.addEventListener(GestureEvent.GESTURE_BEGAN, zoomBegin);
+			//zoomGesture.addEventListener(GestureEvent.GESTURE_CHANGED, zoomChanged);
+			//zoomGesture.addEventListener(GestureEvent.GESTURE_ENDED, zoomEnded);
 		}
 		
 		
@@ -141,7 +157,7 @@ package view {
 		private function generateSteps(data:Array):void {
 			
 			var stepView:StepView;
-			
+			 
 			//loop
 			for each (var stepMoldel:StepModel in data) {
 				
@@ -178,7 +194,12 @@ package view {
 					//out of sequence
 				} else {
 					stepView.x = this.stage.stageWidth - ((stepView.level*-1) * slot);
-					stepView.y = 60;
+					
+					if (Settings.platformTarget == "mobile") {
+						stepView.y = 120;
+					} else {
+						stepView.y = 60;
+					}
 				}
 				
 			}
@@ -233,7 +254,7 @@ package view {
 				connectionLines.y = yPos + 100;
 				
 				connectionLines.graphics.lineStyle(20,0xCCCCCC,0.3);
-				connectionLines.graphics.beginFill(0xFFFFFF);
+				connectionLines.graphics.beginFill(0xFFFFFF,0);
 				connectionLines.graphics.lineTo(1480,0);
 				connectionLines.graphics.lineTo(1480,300);
 				connectionLines.graphics.lineTo(1180,300);
@@ -245,7 +266,7 @@ package view {
 				connectionLines.y = yPos + 50;
 				
 				connectionLines.graphics.lineStyle(10,0xCCCCCC,0.3);
-				connectionLines.graphics.beginFill(0xFFFFFF);
+				connectionLines.graphics.beginFill(0xFFFFFF,0);
 				connectionLines.graphics.lineTo(740,0);
 				connectionLines.graphics.lineTo(740,150);
 				connectionLines.graphics.lineTo(590,150);
@@ -255,8 +276,11 @@ package view {
 			
 			connectionLines.graphics.endFill();
 			
-			connectionLines.blendMode = "multiply";
+			//connectionLines.blendMode = "multiply";
 			stepContainer.addChildAt(connectionLines,0);
+			
+			connectionLines.cacheAsBitmap = true;
+			connectionLines.cacheAsBitmapMatrix = new Matrix();
 		}
 		
 		
@@ -320,7 +344,7 @@ package view {
 		}
 		
 		
-		//****************** PUBLIC METHODS - GETTERS ****************** ****************** ******************
+		//****************** PUBLIC METHODS - SETTERS ****************** ****************** ******************
 		
 		/**
 		 * 
@@ -330,7 +354,16 @@ package view {
 		public function set activeArea(value:Rectangle):void {
 			_activeArea = value;
 		}
-	
+		
+		/**
+		 * 
+		 * @param value
+		 * 
+		 */
+		public function set scrollEnable(value:Boolean):void {
+			scroll.enable = value;
+		}
+		
 	
 		//****************** EVENTS - ACTIONS ****************** ****************** ******************
 		
@@ -349,6 +382,53 @@ package view {
 		
 		
 		//****************** EVENTS - INTERFACE ****************** ****************** ******************
+		
+		public function zoomBegin(event:GestureEvent):void {
+			var zoomGesture:ZoomGesture = event.target as ZoomGesture;
+			
+			var myProxy:TweenProxy = TweenProxy.create(stepContainer);	
+			var currentScale:Number;
+			
+			myProxy.registration = new Point(zoomGesture.location.x, zoomGesture.location.y);
+			currentScale = myProxy.scale;
+		}
+		
+		public function zoomChanged(event:GestureEvent):void {
+			
+			var zoomGesture:ZoomGesture = event.target as ZoomGesture;
+			
+			var myProxy:TweenProxy = TweenProxy.create(stepContainer);	
+			var currentScale:Number;
+			
+			myProxy.scale *= zoomGesture.scaleX;
+			currentScale = myProxy.scale;
+			
+			changeStepsAppearence(currentScale);
+		}
+		
+		public function zoomEnded(event:GestureEvent):void {
+			var myProxy:TweenProxy = TweenProxy.create(stepContainer);	
+			var currentScale:Number;
+			
+			currentScale = myProxy.scale;
+			
+			//prevent smaller then scale min scale
+			if (myProxy.scaleX < minScale) {
+				TweenMax.to(myProxy, 1, {scaleX:minScale, scaleY:minScale, onUpdate:disptachEnertiaUpdate});
+				TweenMax.to(stepContainer, 1, {x:0, y:0});
+				currentScale = minScale;
+			}
+			
+			//prevent bigger then scale max scale
+			if (myProxy.scaleX > maxScale) {
+				TweenMax.to(myProxy, 1, {scaleX:maxScale, scaleY:maxScale, onUpdate:disptachEnertiaUpdate})
+				currentScale = maxScale;
+			}
+			
+			//Step semantic zoom 
+			changeStepsAppearence(currentScale);
+		}
+		
 		
 		/**
 		 * 

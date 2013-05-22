@@ -2,6 +2,7 @@ package view.menu {
 	
 	//imports
 	import util.DeviceInfo;
+	import settings.Settings;
 	
 	/**
 	 * Button Bar Factory.
@@ -38,10 +39,10 @@ package view.menu {
 			var item:ButtonBar = new ButtonBar();
 			var titleLower:String = title.toLowerCase();
 			
-			if (DeviceInfo.os() == "iPhone") {
-				item.iconFile = getIconFileForIphone(titleLower);
+			if (Settings.platformTarget == "mobile") {
+				item.iconFile = getIconHDIcon(titleLower);
 			} else {
-				item.iconFile = getIconFileForMac(titleLower);
+				item.iconFile = getIconSDIcon(titleLower);
 			}
 	
 			//initiate
@@ -62,14 +63,14 @@ package view.menu {
 		 * @return String
 		 * 
 		 */
-		static private function getIconFileForMac(titleLower:String):String {
+		static private function getIconSDIcon(titleLower:String):String {
 			
 			var file:String;
 			
 			switch(titleLower) {
 				
 				case "list":
-					file = "/images/" + titleLower + ".png";
+					file = "images/icons/" + titleLower + ".png";
 					break;
 				
 			}
@@ -84,19 +85,19 @@ package view.menu {
 		 * @return String
 		 * 
 		 */
-		static private function getIconFileForIphone(titleLower:String):String {
+		static private function getIconHDIcon(titleLower:String):String {
 			
 			var file:String;
 			
 			switch(titleLower) {
 				
 				case "list":
-					file = "/images/" + titleLower + "@2x.png";
+					file = "images/icons/" + titleLower + "@2x.png";
 					break;
 
 			}
 			
-			return "";
+			return file;
 		}
 	}
 }

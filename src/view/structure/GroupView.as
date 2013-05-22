@@ -14,6 +14,7 @@ package view.structure {
 	
 	import view.graphic.AbstractShape;
 	import view.graphic.RoundRect;
+	import settings.Settings;
 	
 	/**
 	 * 
@@ -67,10 +68,16 @@ package view.structure {
 			
 			titleStyle = new TextFormat();
 			titleStyle.font = "Arial";
-			titleStyle.size = 12;
 			titleStyle.color = 0x666666;
 			titleStyle.bold = true;
-			titleStyle.align = "right"
+			titleStyle.align = "right";
+			
+			if (Settings.platformTarget == "mobile") {
+				titleStyle.size = 18;
+			} else {
+				titleStyle.size = 12;
+			}
+			
 		}
 		
 		

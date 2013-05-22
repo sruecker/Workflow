@@ -1,10 +1,6 @@
 package {
 	
 	//import
-	import com.greensock.TweenMax;
-	import com.greensock.easing.Back;
-	
-	import flash.display.Bitmap;
 	import flash.display.Loader;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -16,6 +12,13 @@ package {
 	
 	import model.DataModel;
 	import model.StructureModel;
+	
+	import org.gestouch.core.Gestouch;
+	import org.gestouch.gestures.TapGesture;
+	import org.gestouch.input.NativeInputAdapter;
+	import org.gestouch.events.GestureEvent;
+	
+	import settings.Settings;
 	
 	import view.WorkflowView;
 	
@@ -29,9 +32,7 @@ package {
 		protected var workflowController		:WorkflowController			//Controller
 		protected var workflowView				:WorkflowView;				//Main View;
 		
-		protected var settings					:Settings;					//Settings
-		
-		
+		protected var configure					:Settings;					//Settings
 
 		
 		//****************** Constructor ****************** ****************** ******************
@@ -42,7 +43,7 @@ package {
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
 			//settings
-			settings = new Settings();
+			setting();
 			
 			//background
 			var background:Sprite = new Sprite();
@@ -52,8 +53,6 @@ package {
 			background.addChild(loader)
 			background.alpha = .3;
 			addChild(background);
-			
-			
 			
 			//Start models
 			structureModel = new StructureModel();
@@ -68,6 +67,21 @@ package {
 			workflowView = new WorkflowView(workflowController);
 			addChild(workflowView);
 			workflowController.setView(workflowView);
+			
+		}
+		
+		
+		//****************** PRIVATE METHODS ****************** ****************** ****************** 
+		
+		/**
+		 * 
+		 * 
+		 */
+		private function setting():void {
+			configure = new Settings();
+			//default values
+			Settings.platformTarget = "air";
+			Settings.debug = false;
 		}
 		
 		

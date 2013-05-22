@@ -30,13 +30,11 @@ package view.structure {
 		public function CounterBox() {
 			
 			//shape
-			var shape:AbstractShape;
-			shape = new RoundRect(15,15,10);
-			shape.color = 0xCCCCCC;
-			shape.lineThickness = 1;
-			shape.lineColor = 0x999999;
-			
-			shape.drawShape();
+			var shape:Sprite = new Sprite();
+			shape.graphics.lineStyle(1,0x999999,1,true,"none");
+			shape.graphics.beginFill(0xCCCCCC)
+			shape.graphics.drawRoundRect(0,0,15,15,10,10);
+			shape.graphics.endFill();
 			
 			shape.x = -shape.width/2;
 			shape.y = -shape.height/2;
@@ -57,7 +55,6 @@ package view.structure {
 			counterTF.autoSize = "center";
 			counterTF.defaultTextFormat = style;
 			counterTF.text = "0";
-			//counterTF.setTextFormat(style);
 			
 			counterTF.x = shape.x + shape.width/2 - counterTF.width/2 - 1;
 			counterTF.y = shape.y - 2;

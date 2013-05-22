@@ -53,6 +53,7 @@ package view.tooltip {
 			
 			//draw balloon
 			balloon = new Sprite();
+			balloon.graphics.lineStyle(1,0x333333);
 			balloon.graphics.beginFill(_color,1);
 			balloon.graphics.drawRoundRect(0,0,w,h,round,round);
 			balloon.graphics.endFill();
@@ -63,6 +64,7 @@ package view.tooltip {
 			
 			//draw arrow
 			arrow = new Sprite();
+			arrow.graphics.lineStyle(1,0x333333);
 			arrow.graphics.beginFill(_color, 1);
 			arrow.graphics.moveTo(-arrowWidth/2, -arrowHeight/2);
 			arrow.graphics.lineTo(arrowWidth/2, -arrowHeight/2);

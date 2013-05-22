@@ -1,24 +1,17 @@
 package view {
 	
 	//imports
-	import com.greensock.TweenMax;
 	
 	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
-	import events.WorkflowEvent;
-	
 	import mvc.AbstractView;
 	import mvc.IController;
 	
-	import util.DeviceInfo;
-	
-	import view.graphic.ShadowLine;
+	import settings.Settings;
 	import view.menu.TopMenu;
-	import view.menu.submenu.SubMenu;
-	import view.menu.submenu.SubMenuFactory;
 	
 	public class TopBar extends AbstractView {
 		
@@ -41,8 +34,8 @@ package view {
 			style.bold = true;
 			style.color = 0XFFFFFF;
 			
-			if (DeviceInfo.os() == "iPhone") {
-				h = 80;
+			if (Settings.platformTarget == "mobile") {
+				h = 60;
 				style.size = 42;
 			} else {
 				h = 30;
@@ -60,7 +53,7 @@ package view {
 			
 			this.addChild(bg);
 			
-			this.blendMode = "multiply";
+			//this.blendMode = "multiply";
 			
 			//1.2 Shadow
 			//var shadowLine:ShadowLine = new ShadowLine(stage.stageWidth);
@@ -89,66 +82,6 @@ package view {
 			menu.init();
 			this.addChild(menu);
 			
-			menu.addEventListener(WorkflowEvent.SELECT, _topBarSelect);
-			
-		}
-		
-		protected function _topBarSelect(event:WorkflowEvent):void {
-			/*
-			var eventData:Object = new Object();
-			var type:String = event.parameters.label;
-			
-			if (type == "") {
-				
-				switch (Settings.subMenuOrientation) {
-					case "vertical":
-						TweenMax.to(subMenu, .3, {x:-subMenu.width, onComplete:killChild, onCompleteParams:[subMenu]});
-						break;
-					
-					case "horizontal":
-						TweenMax.to(subMenu, .3, {y:bg.height -subMenu.height, onComplete:killChild, onCompleteParams:[subMenu]});
-						break;
-				}
-				
-				subMenu = null;
-				
-				//Send event
-				
-				eventData.action = "submenuClose";
-				this.dispatchEvent(new PipelineEvents(PipelineEvents.RESIZE, eventData));
-				
-				
-			} else if (!subMenu) {
-				
-				subMenu = SubMenuFactory.subMenu(this.getController(), type, Settings.subMenuOrientation);
-				subMenu.setModel(this.getModel());
-				
-				subMenu.y = bg.height;
-				this.addChildAt(subMenu,0);
-				subMenu.init();
-				
-				switch (Settings.subMenuOrientation) {
-					case "vertical":
-						TweenMax.from(subMenu, .3, {x: -subMenu.width});
-						break;
-					
-					case "horizontal":
-						TweenMax.from(subMenu, .3, {y: 0});
-						break;
-				}
-				
-				//Send event
-				eventData.action = "submenuOpen";
-				this.dispatchEvent(new PipelineEvents(PipelineEvents.RESIZE, eventData));
-				
-			} else {
-				
-				subMenu.changeContent(type)
-			}
-			
-			type = null;
-			
-			*/
 		}
 		
 		private function killChild(value:DisplayObject):void {

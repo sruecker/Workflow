@@ -22,7 +22,10 @@ package view {
 	import mvc.AbstractView;
 	import mvc.IController;
 	
-	import util.DeviceInfo;
+	import org.gestouch.events.GestureEvent;
+	import org.gestouch.gestures.ZoomGesture;
+	
+	import settings.Settings;
 	
 	import view.list.PinList;
 	import view.list.PinListItem;
@@ -40,9 +43,11 @@ package view {
 		
 		//****************** Properties ****************** ****************** ******************
 		
-		protected var logo						:Sprite;
+		protected var logo							:Sprite;
 		
 		protected var topBar						:TopBar
+		
+		protected var splash					:Sprite;
 		
 		protected var structureView					:StructureView;
 		protected var dataflowView					:DataflowView;
@@ -50,12 +55,11 @@ package view {
 		protected var pinList						:PinList;			
 		protected var toolTipManager				:ToolTipManager;
 		
-		protected var stepHit						:StepView;
-		protected var stepHitInside					:Boolean;
-		
 		private var currentScale					:Number = 1;
 		private var minScale						:Number = 1;
 		private var maxScale						:Number = 6;
+		
+		protected var zoomGesture					:ZoomGesture;
 		
 		
 		//****************** Constructor ****************** ****************** ******************
@@ -67,8 +71,34 @@ package view {
 		 */
 		public function WorkflowView(c:IController) {
 			super(c);
+			
+			splash = new Sprite();
+			this.addChild(splash);
+			
+			var loaderimageLoader:Loader = new Loader();
+			var img:String;
+			switch (Settings.platformTarget) {
+				
+				case "mobile":
+					img = "images/splash@2x.png";
+					break;
+				
+				default:
+					img = "images/splash_1260x700.png";
+					break;
+				
+			}
+			
+			loaderimageLoader.load(new URLRequest(img));
+			splash.alpha = .8
+			splash.addChild(loaderimageLoader);
+			loaderimageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, splashLoad);
 		}
 		
+		protected function splashLoad(event:Event):void {
+			//splash.x = (this.stage.stageWidth/2) - (splash.width/2)
+			//splash.y = (this.stage.stageHeight/2) - (splash.height/2)
+		}		
 		
 		//****************** Initialize ****************** ****************** ******************
 		
@@ -77,6 +107,18 @@ package view {
 		 * 
 		 */
 		public function init():void {
+			TweenMax.to(splash,.5,{alpha:0, delay:2, onComplete:initiate});
+		}
+		
+		/**
+		 * 
+		 * 
+		 */
+		private function initiate():void {
+			
+			//remove splash
+			this.removeChild(splash);
+			splash = null;
 			
 			//1. Get controller
 			var wController:WorkflowController = this.getController() as WorkflowController;
@@ -128,12 +170,19 @@ package view {
 			this.addEventListener(ScrollEvent.SCROLL, pinSemanticZoomUpdate);
 			this.addEventListener(ScrollEvent.INERTIA, pinSemanticZoomUpdate);
 			topBar.addEventListener(WorkflowEvent.SELECT, topBarAction);
-			structureView.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
+			
 			dataflowView.addEventListener(WorkflowEvent.DRAG_PIN, hitTest);
 			dataflowView.addEventListener(WorkflowEvent.SELECT, clickPin);
 			
-			
-		}		
+			//zoom
+			if (Settings.platformTarget == "mobile") {
+				zoomGesture = new ZoomGesture(this);
+				zoomGesture.addEventListener(GestureEvent.GESTURE_BEGAN, zoomBegin);
+			} else {
+				structureView.addEventListener(TransformGestureEvent.GESTURE_ZOOM, zoom);
+			}
+		}
+		
 		
 		/**
 		 * 
@@ -146,7 +195,13 @@ package view {
 			img.y = -img.height/2;
 			
 			logo.x = (logo.width/2) + 10;
-			logo.y = (logo.height/2) + 40;
+			
+			if (Settings.platformTarget == "mobile") {
+				logo.y = (logo.height/2) + 80;
+			} else {
+				logo.y = (logo.height/2) + 40;
+			}
+			
 			
 			TweenMax.from(logo,3,{alpha:0, x:-img.width/2, rotation:-400, delay:1, ease: Back.easeOut});
 		}
@@ -262,6 +317,13 @@ package view {
 			
 			event.stopPropagation();
 			event.stopImmediatePropagation();
+			
+			//unblock structure zoom and pan
+			if (Settings.platformTarget == "mobile") {
+				zoomGesture.enabled = true;
+				structureView.scrollEnable = true;
+			}
+			
 		}
 		
 		/**
@@ -288,9 +350,23 @@ package view {
 		protected function hitTest(event:WorkflowEvent):void {
 			if (event.phase == "end") {
 				hitTestEnd(event.target as PinView);
+				
+				//unblock structure zoom and pan
+				if (Settings.platformTarget == "mobile") {
+					zoomGesture.enabled = true;
+					structureView.scrollEnable = true;
+				}
+				
 			} else {
 				hitTester(event.target as PinView);
+				
+				//block structure zoom and pan
+				if (Settings.platformTarget == "mobile") {
+					zoomGesture.enabled = false;
+					structureView.scrollEnable = false;
+				}
 			}
+			
 		}
 		
 		/**
@@ -300,31 +376,32 @@ package view {
 		 */
 		protected function hitTester(pin:PinView):void {
 			
-			stepHitInside = false;			
+			pin.stepHitInside = false;			
 			var hitter:StepView;
 			
 			for each(var stepView:StepView in structureView.getStepCollection()) {
 				if(pin.hitTestObject(stepView)) {
 					
 					if (stepView.acronym.toLowerCase() == pin.currentStep.toLowerCase()) {
-						stepHitInside = true;
+						pin.stepHitInside = true;
 					} else {
-						stepHitInside = false;
-						stepView.highlight(15);
+						pin.stepHitInside = false;
+						stepView.highlight(true);
 					}
 					
 					hitter = stepView;
 					
 				} else {
-					stepView.highlight(5);
+					stepView.highlight(false);
 				}	
 			}
 			
 			if(!hitter) {
-				stepHit = null;
+				pin.stepHit = null;
 			} else {
-				stepHit = hitter;
+				pin.stepHit = hitter;
 			}
+			
 		}
 		
 		/**
@@ -334,13 +411,13 @@ package view {
 		 */
 		protected function hitTestEnd(pin:PinView):void {
 			
-			if (stepHit == null) { // pin return to the origin
+			if (pin.stepHit == null) { // pin return to the origin
 				TweenMax.to(pin,1,{x:pin.originalPosition.x, y:pin.originalPosition.y, ease:Back.easeOut});
 			} else {
 				
-				if (!stepHitInside) { // pin Change step
-					WorkflowController(this.getController()).changePinLocation(pin.id, stepHit.id);
-					stepHit.highlight(5);
+				if (!pin.stepHitInside) { // pin Change step
+					WorkflowController(this.getController()).changePinLocation(pin.id, pin.stepHit.id);
+					pin.stepHit.highlight(false);
 				} else {
 					pin.updatePosition(pin.x,pin.y);
 					//position - new Ratio
@@ -359,8 +436,8 @@ package view {
 			}
 			
 			//reset variables;
-			stepHit = null;
-			stepHitInside = false;
+			pin.stepHit = null;
+			pin.stepHitInside = false;
 		}
 
 		
@@ -408,12 +485,30 @@ package view {
 			}
 			
 			//send update to pin
-			dataflowView.updatePin(doc.id,data)
+			dataflowView.updatePin(doc.id,data);
 			
 		}
 		
 		
 		//****************** EVENT - INTERFACE ****************** ****************** ******************
+		
+		protected function zoomBegin(event:GestureEvent):void {
+			structureView.zoomBegin(event);
+			
+			zoomGesture.addEventListener(GestureEvent.GESTURE_CHANGED, zoomChanged);
+			zoomGesture.addEventListener(GestureEvent.GESTURE_ENDED, zoomEnded);
+		}
+		
+		protected function zoomChanged(event:GestureEvent):void {
+			structureView.zoomChanged(event);
+			pinSemanticZoomUpdate();
+		}
+		
+		protected function zoomEnded(event:GestureEvent):void {
+			structureView.zoomEnded(event);
+			pinSemanticZoomUpdate();
+		}
+		
 		
 		/**
 		 * 
@@ -421,6 +516,7 @@ package view {
 		 * 
 		 */
 		protected function zoom(event:TransformGestureEvent):void {
+			
 			switch (event.phase) {
 				
 				case "begin":
@@ -443,15 +539,17 @@ package view {
 		 */
 		protected function pinSemanticZoomUpdate(event:ScrollEvent = null):void {
 			
+			var pinCollection:Array = dataflowView.getPinCollection();
+			
 			//for each pin
-			for each(var pinView:PinView in dataflowView.getPinCollection()) {
+			for each(var pinView:PinView in pinCollection) {
 				
 				//------Get step ounds
 				var sp:StepView = structureView.getStepByAcronym(pinView.currentStep);
 				var stepBounds:Rectangle = sp.getPositionForPin();
 				
 				//iphone
-				if (DeviceInfo.os() != "Mac") { 
+				if (Settings.platformTarget == "mobile") { 
 					stepBounds.width = stepBounds.width * 2;
 					stepBounds.height = stepBounds.height * 2;
 				}
